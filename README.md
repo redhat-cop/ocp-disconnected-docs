@@ -9,6 +9,14 @@
 
 ## What are the different components that make up CodeSparta?
 
+## What is Koffer?
+
+## What is Konductor?
+
+## What is Cloudctl?
+
+## How do does components work with each other?
+
 ## What is a runtime environment?
 
 ## Why is it needed?
