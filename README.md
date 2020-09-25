@@ -27,6 +27,10 @@
 
 ## What is an airgaped environment?
 
+## What is a lowside in an airgaped environment?
+
+## What is a highside in an airgaped environment?
+
 ## What is a disconected environment?
 
 ## What is the difference between and airgaped and a disconnected environment?
