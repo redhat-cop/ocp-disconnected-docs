@@ -17,6 +17,12 @@
 
 ## How do does components work with each other?
 
+## What is a container?
+
+## What is a pod?
+
+## What is a container registry?
+
 ## What is a runtime environment?
 
 ## Why is it needed?
