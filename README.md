@@ -21,11 +21,11 @@ The different componenets that make up CodeSparta are: Koffer, Konductor, and Cl
 
 ## What is Konductor?
 
-Konductor is a SSH & TMUX enabled UBI8 based Infrastructure As Code (IaC) development & deployment sandbox which includes multiple cloud provider tools & devops deployment utilities, it provides a human workspace for DevOps dependency & control. It is a core compoment of the CloudCtl bastion Podman container Pod, and is intended for use in both typical & restricted or airgap network environments.
+[Konductor](https://github.com/CodeSparta/Konductor) is a SSH & TMUX enabled UBI8 based Infrastructure As Code (IaC) development & deployment sandbox which includes multiple cloud provider tools & devops deployment utilities, it provides a human workspace for DevOps dependency & control. It is a core compoment of the CloudCtl bastion Podman container Pod, and is intended for use in both typical & restricted or airgap network environments.
 
 ## What is Cloudctl?
 
-Cloudctl is a DevOps Deployment Services & Utilities Container Pod Infrastructure as Code toolkit. It provides a container based Infrastructure as Code toolkit for deployment operations tasks. Its core features are delivered via the UBI8 based Konductor as its primary orchestration base. It is capable of dynamically allocating additional pod contained services.
+[Cloudctl](https://github.com/CodeSparta/CloudCtl) is a DevOps Deployment Services & Utilities Container Pod Infrastructure as Code toolkit. It provides a container based Infrastructure as Code toolkit for deployment operations tasks. Its core features are delivered via the UBI8 based Konductor as its primary orchestration base. It is capable of dynamically allocating additional pod contained services.
 
 ## How do does components work with each other?
 
