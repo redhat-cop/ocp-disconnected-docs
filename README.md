@@ -1,9 +1,11 @@
 # Wiki
 ## What is CodeSparta?
 
+In simple term CodeSparta is an [Airgap](https://en.wikipedia.org/wiki/Air_gap_(networking)#:~:text=An%20air%20gap%2C%20air%20wall,an%20unsecured%20local%20area%20network.) Platform Delivery as Code.
+
 ## What problem does it solve?
 
-Sparta was created to solve the problem of delivering the Red Hat OpenShift Kubernetes Platform, along with an exstensible middleware and application portfolio, within restricted deployment environments (e.g. behind an airgap).
+Sparta was created to solve the problem of delivering the Red Hat OpenShift Kubernetes Platform, along with an exstensible middleware and application portfolio, within restricted deployment environments (e.g. behind an [airgap](https://en.wikipedia.org/wiki/Air_gap_(networking)#:~:text=An%20air%20gap%2C%20air%20wall,an%20unsecured%20local%20area%20network.)).
 
 ## How is it solving it?
 
@@ -55,8 +57,6 @@ Given some code written by someone, everything you need to compile it or otherwi
 
 Everything you need to write code, build it and test it. Code Editors and other such tools. Typically also includes Build and Run.
 
-## Why is it needed?
-
 ## What is Kubernetes?
 [Kubernetes](https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/) is a portable, extensible, open-source platform for managing containerized workloads and services, that facilitates both declarative configuration and automation. 
 
@@ -84,8 +84,3 @@ An [artifact](https://en.wikipedia.org/wiki/Artifact_(software_development)) is 
 ## What is a network enclave?
 
 A [Network Enclave](https://en.wikipedia.org/wiki/Network_enclave) is a section of an internal network that is subdivided from the rest of the network.
-
-
-
-
-
