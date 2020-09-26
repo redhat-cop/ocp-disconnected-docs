@@ -17,7 +17,7 @@ The different componenets that make up CodeSparta are: Koffer, Konductor, and Cl
 
 ## What is Koffer?
 
-Koffer Engine is an ansible automation runtime for raking in various artifacts required to deploy Red Hat OpenShift Infrastructure, Pipelines, and applications into airgaped environments. Koffer is strictly an empty engine and is designed to run against compliant external collector plugin repos.
+[Koffer](https://github.com/CodeSparta/Koffer) Engine is an ansible automation runtime for raking in various artifacts required to deploy Red Hat OpenShift Infrastructure, Pipelines, and applications into airgaped environments. Koffer is strictly an empty engine and is designed to run against compliant external collector plugin repos.
 
 ## What is Konductor?
 
@@ -29,7 +29,7 @@ Cloudctl is a DevOps Deployment Services & Utilities Container Pod Infrastructur
 
 ## How do does components work with each other?
 
-Koffer creates tar bundles of required images for the deployment of the platform, place them in unencrypted storage medium, Konductor then prompt the user some sensitive information, ie Terraform vars, OCP ignition, secrets, etc... creates a manifest with newly received data, then store those data in encrypted storage medium, Konductor then pulls the tar bundles created by Koffer from the unencrypted storage medium, as well as the manifest from the encrypted storage medium, then deploys Cloudctl and the OpenShift cluster. Different components from the OpenShift cluster pull what's needed for their provisionement from Cloudctl.
+[Koffer](https://github.com/CodeSparta/Koffer) creates tar bundles of required images for the deployment of the platform, place them in unencrypted storage medium, [Konductor](https://github.com/CodeSparta/Konductor) then prompt the user some sensitive information, ie Terraform vars, OCP ignition, secrets, etc... creates a manifest with newly received data, then store those data in encrypted storage medium, Konductor then pulls the tar bundles created by Koffer from the unencrypted storage medium, as well as the manifest from the encrypted storage medium, then deploys [Cloudctl](https://github.com/CodeSparta/CloudCtl) and the OpenShift cluster. Different components from the OpenShift cluster pull what's needed for their provisionement from Cloudctl.
 
 ## What is a container?
 
