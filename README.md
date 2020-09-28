@@ -1,6 +1,6 @@
 # What is CodeSparta?
 
-In the simplest terms, CodeSparta is a target agnostic, additive, (Kubernetes) Private Cloud Trusted Platform Delivery ToolKit. Sparta codifies & automates "prerequisites" with an emphasis on extensability, repeatability, and developer ease of use.
+In the simplest terms, CodeSparta is a target agnostic, additive, (Kubernetes) private cloud Trusted Platform Delivery ToolKit. Sparta codifies & automates "prerequisites" with an emphasis on extensability, repeatability, and developer ease of use.
 
 ### What problem does it solve?
 
