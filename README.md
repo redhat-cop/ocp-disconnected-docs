@@ -36,7 +36,7 @@ All of Sparta's core components were designed with declarative operation, ease o
 
 [CloudCtl](https://github.com/CodeSparta/CloudCtl) is a dynamic Konductor orchestrated framework for serving various deployment & lifecycle ops time infrastructure service requirements. CloudCtl is designed for extensable support of "bring your own" services including CoreDNS, Nginx, Docker Registry, ISC-DHCP, and Tftpd. CloudCtl is intended for use as a "last resort crutch" where pre-existing enterprise or cloud native supporting services are prefered if supported in the Konductor IaC plugins.
 
-# Glossary
+## Glossary
 ### What is a tarball?
 
 [Tarball](https://en.wikipedia.org/wiki/Tarball) may refer to: tar (computing), a computer file format that combines and compresses multiple files.
