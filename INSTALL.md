@@ -569,7 +569,7 @@ oc get route -n openshift-console console | awk '/console/{print $2}'
 
 1. In order to access the web console, we will need to connect to the private VPC. One way to do this is to simply use sshuttle ([https://sshuttle.readthedocs.io/en/stable/overview.html](https://sshuttle.readthedocs.io/en/stable/overview.html)) using the following commands.
 
-From the ICLT Install Python 3.6 on the Sparta Bastion Node to support using sshuttle
+From the ICLT host, run the following command to install Python 3.6 on the Sparta Bastion Node to support using sshuttle
 
 
 ```
