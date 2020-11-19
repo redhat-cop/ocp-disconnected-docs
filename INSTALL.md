@@ -551,7 +551,7 @@ watch -d -n 5 oc get co
 ```
 
 
-Once the console is available, run the following on the sparta-bastion node to get the password for the kubeadmin user:
+1. Run the following command to get the password for the kubeadmin user:
 
 
 ```
@@ -559,7 +559,7 @@ cat /root/platform/secrets/cluster/auth/kubeadmin-password
 ```
 
 
-To get the url to the console
+1. To get the url to the console:
 
 
 ```
@@ -567,7 +567,7 @@ oc get route -n openshift-console console | awk '/console/{print $2}'
 ```
 
 
-In order to access the web console, we will need to connect to the private VPC. One way to do this is to simply use sshuttle ([https://sshuttle.readthedocs.io/en/stable/overview.html](https://sshuttle.readthedocs.io/en/stable/overview.html)) using the following commands.
+1. In order to access the web console, we will need to connect to the private VPC. One way to do this is to simply use sshuttle ([https://sshuttle.readthedocs.io/en/stable/overview.html](https://sshuttle.readthedocs.io/en/stable/overview.html)) using the following commands.
 
 From the ICLT Install Python 3.6 on the Sparta Bastion Node to support using sshuttle
 
@@ -577,7 +577,7 @@ ssh -i $SPARTA_PRIVATE_KEY -t ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP "sudo dnf 
 ```
 
 
-From the ICLT launch sshuttle to connect to the VPC
+1. From the ICLT launch sshuttle to connect to the VPC
 
 
 ```
@@ -586,7 +586,7 @@ sshuttle  --dns -r ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP 0/0 \
 ```
 
 
-Now you can connect to the console using your browser of choice.
+1. Now you can connect to the console using your browser of choice.
 
 
 ### Cluster & VPC Teardown Page Section
