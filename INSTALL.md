@@ -112,7 +112,9 @@ Use this checklist to ensure prerequisites have been met:
     *   AWS Commercial (https://console.aws.amazon.com/iam/home#/security_credentials)
     *   AWS GovCloud ([https://console.amazonaws-us-gov.com/iam/home#/security_credentials](https://console.amazonaws-us-gov.com/iam/home#/security_credentials))
 2. AWS RHEL 8 AMI
-    *   “aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --filters "Name=name,Values=RHEL-8.3*" "Name=architecture,Values=x86_64" --region us-east-2 --output table”
+```
+aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --filters "Name=name,Values=RHEL-8.3*" "Name=architecture,Values=x86_64" --region us-east-2 --output table
+```
 
 
 #### For Development/Demo deployments:
