@@ -603,7 +603,7 @@ From the ICLT host, run the following command to install Python 3.6 on the Spart
 
 
 ```
-ssh -i $SPARTA_PRIVATE_KEY -t ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP "sudo dnf install python36"
+ssh -i $SPARTA_PRIVATE_KEY -t ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP "sudo dnf -y install python36"
 ```
 
 
@@ -612,7 +612,7 @@ ssh -i $SPARTA_PRIVATE_KEY -t ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP "sudo dnf 
 
 ```
 sshuttle  --dns -r ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP 0/0 \
-  --ssh-cmd  'ssh -i $SPARTA_PRIVATE_KEY'
+  --ssh-cmd  "ssh -i $SPARTA_PRIVATE_KEY"
 ```
 
 
