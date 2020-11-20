@@ -151,17 +151,23 @@ ssh-keygen -y -f \
 ```
 
 
-2. Upload RHCOS AMI to AWS
-1. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
-3. Configure the Sparta DevKit VPC
-    1. Export the version of OpenShift to be deployed as an environment variable. The value 4.6.1 is the only supported value for this set of directions.
+6. Upload RHCOS AMI to AWS when in GovCloud
+
+7. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
+
+8. If in the commercial cloud please find the ami for your region from the following link:
+https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
+
+
+### Configure the Sparta DevKit VPC
+1. Export the version of OpenShift to be deployed as an environment variable. The value 4.6.1 is the only supported value for this set of directions.
 
 ```
 export OCP_VERSION=4.6.1
 ```
 
 
-    2. Clone the “devkit-vpc” repo:
+2. Clone the “devkit-vpc” repo:
 
 ```
 git clone --branch $OCP_VERSION \
@@ -169,21 +175,22 @@ git clone --branch $OCP_VERSION \
 ```
 
 
-    3. Change directory to the “devkit-vpc” git repo
+3. Change directory to the “devkit-vpc” git repo
 
 ```
 cd devkit-vpc
 ```
 
 
-    4. Configure terraform deployment variables:
+4. Configure terraform deployment variables:
 
 ```
 vi variables.tf
 ```
 
 
-    5. Use the following table for assistance when setting the terraform deployment variables (Note: you’re only required to fill out the variables in this table, leave the remaining vars as is):
+5. Use the following table for assistance when setting the terraform deployment variables (Note: you’re only required to fill out the variables in this table, leave the remaining vars as is):
+
 <table>
   <tr>
    <td>
@@ -249,10 +256,7 @@ vi variables.tf
   </tr>
 </table>
 
-
-
-
-    6. Launch the Sparta DevKit VPC replacing the -e args with your region and AWS key values:
+6. Launch the Sparta DevKit VPC replacing the -e args with your region and AWS key values:
 
 ```
 ./devkit-build-vpc.sh -vvv \ 
@@ -262,22 +266,20 @@ vi variables.tf
 ```
 
 
-    7. One of the things the above command created was an EC2 instance named ‘sparta-bastion-node’. Export the sparta-bastion-node public ip address into an env var. This can be found in the AWS EC2 web console:
+7. One of the things the above command created was an EC2 instance named ‘sparta-bastion-node’. Export the sparta-bastion-node public ip address into an env var. This can be found in the AWS EC2 web console:
 
 ```
 export SPARTA_BASTION_NODE_PUBLIC_IP=[public ip of sparta-bastion-node]
 ```
 
 
-    8. Push AWS SSH keys sparta-bastion-host:
+8. Push AWS SSH keys sparta-bastion-host:
 
 ```
 scp -i $SPARTA_PRIVATE_KEY \
   $SPARTA_PRIVATE_KEY \
   ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP:~/.ssh/
 ```
-
-
 
 
 ### Generate Offline Bundle
