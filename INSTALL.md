@@ -182,7 +182,35 @@ vi variables.tf
 
 
     5. Use the following table for assistance when setting the terraform deployment variables (Note: you’re only required to fill out the variables in this table, leave the remaining vars as is):
-
+<table>
+  <tr>
+   <td>
+<strong>Variable Name</strong>
+   </td>
+   <td><strong>Required</strong>
+   </td>
+   <td><strong>Explanation</strong>
+   </td>
+  </tr>
+  <tr>
+   <td>aws_ssh_key
+   </td>
+   <td>sparta
+   </td>
+   <td>AWS Key Pair name from above 
+   </td>
+  </tr>
+  <tr>
+   <td>ssh_pub_key
+   </td>
+   <td>to get this value execute the following command: `cat $(dirname $SPARTA_PRIVATE_KEY)/sparta.pub`
+   </td>
+   <td>The file content from the sparta.pub key create above
+   </td>
+  </tr>
+</table>
+<br>
+<br>
 <table>
   <tr>
    <td>
@@ -226,8 +254,6 @@ vi variables.tf
 
 ```
 ./devkit-build-vpc.sh -vvv \ 
-     -e aws_ssh_key=sparta \
-     -e ssh_pub_key=`cat $(dirname $SPARTA_PRIVATE_KEY)/sparta.pub` \
      -e aws_cloud_region=[AWS_REGION] \
      -e aws_access_key=[AWS_ACCESS_KEY] \
      -e aws_secret_key=[AWS_SECRET_KEY]
