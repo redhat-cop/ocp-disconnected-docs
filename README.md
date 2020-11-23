@@ -133,8 +133,9 @@ The Sparta DevKit VPC simulates air-gapped environments. It will create the requ
 * Bastion Node
 * Registry Node
 * Route 53 Configurations
+* Internet gateway
 
-For custom deployments, parts or all of this automation may be skipped as long as infrastructure meeting the requirements of the install are provided. Please see Appendix for more information.
+For custom deployments, parts or all of this automation may be skipped as long as infrastructure meeting the requirements of the install are provided. Please see [Appendix](#appendix) for more information.
 
 Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation. 
 
@@ -711,3 +712,103 @@ Execute breakdown script
 ./devkit-destroy-vpc.sh
 ```
 
+### Appendix
+
+The following are attributes of infrastructure componenets that can be manually created if needed. These are to help guide any manual creation. If you wish to run portions of the devkit, two places need to edited: main.tf and run.yml.
+
+In main.tf, comment out Terraform modules that you don't want to run:
+```
+provider "aws" {
+  region = var.aws_region
+}
+
+/*module "vpc" {               <-- comment out undesired blocks as such
+  source = "./vpc"
+
+  cluster_name = var.cluster_name
+  cidr_blocks = var.cidr_blocks
+  aws_region = var.aws_region
+  default_tags = var.default_tags
+  aws_azs = var.aws_azs
+  vpc_private_subnet_cidrs = var.vpc_private_subnet_cidrs
+  vpc_public_subnet_cidrs = var.vpc_public_subnet_cidrs
+}*/
+
+...
+
+```
+
+In run.yml, comment out the corresponding variable inits:
+
+```
+...
+
+    ####### Terraform Init
+    - name: '{{ ansible_name_module }} | shell | terraform init'
+      shell: terraform init
+      loop:
+        - "{{ tf_module_path }}"
+        #- "{{ tf_module_path }}/vpc"                <--  comment out corresponding undesired blocks as such
+        - "{{ tf_module_path }}/security-groups"
+        - "{{ tf_module_path }}/iam-roles"
+        - "{{ tf_module_path }}/bastion-node"
+        - "{{ tf_module_path }}/registry-node"
+        #- "{{ tf_module_path }}/route-53"
+        
+...
+```
+
+
+#### VPC
+
+```
+Name tag: ${cluster_name}
+IPv4 CIDR block: 10.0.0.0/16
+IPv6 CIDR block:
+```
+
+Service endpoint for S3:
+```
+Service name: com.amazonaws.us-gov-west-1.s3
+VPC: ${vpc_id}
+Route table: ${private_route_table_id}
+Custom:
+{
+  "Version": "2008-10-17",
+  "Statement": [
+	{
+  	"Principal": "*",
+  	"Action": "*",
+  	"Effect": "Allow",
+  	"Resource": "*"
+	}
+  ]
+}
+Tags:
+Name: manual-test-pri-s3-vpce
+“kubernetes.io/cluster/${cluster_name}", "owned" 
+```
+
+Service endpoint for EC2:
+```
+Service name: com.amazonaws.us-gov-west-1.elasticloadbalancing
+VPC: ${vpc_id}
+Endpoint type: Interface
+Private DNS: true
+Security groups:  ${cluster_name}-elb-vpce
+Subnets: ${private_subnet_ids}
+Tags:
+	Name: ${cluster_name}-elb-vpce
+```
+
+Service endpoint for ELB:
+```
+Service name: com.amazonaws.us-gov-west-1.elasticloadbalancing
+VPC: ${vpc_id}
+Endpoint type: Interface
+Private DNS: true
+Security groups:  ${cluster_name}-elb-vpce
+Subnets: ${private_subnet_ids}
+Tags:
+	Name: ${cluster_name}-elb-vpce
+```
