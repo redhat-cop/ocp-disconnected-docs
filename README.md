@@ -117,9 +117,26 @@ aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &Creation
 ```
 
 
-#### For Development/Demo deployments:
+#### For Development deployments:
 
-The Sparta DevKit VPC simulates air-gapped environments. Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation. 
+The Sparta DevKit VPC simulates air-gapped environments. It will create the required infrastructure to begin an install. This will include:
+* VPCs
+    *   Private subnets (3 instances across availability zones)
+    *   Public subnets (3 instances across availability zones)
+* Security Groups
+    *   Master security group
+    *   Worker security group
+    *   Registry security group
+* IAM Roles
+    *   Master IAM policy
+    *   Worker IAM policy
+* Bastion Node
+* Registry Node
+* Route 53 Configurations
+
+For custom deployments, parts or all of this automation may be skipped as long as infrastructure meeting the requirements of the install are provided. Please see Appendix for more information.
+
+Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation. 
 
 From ICLT (Specified in Development Checklist):
 
