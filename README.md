@@ -119,7 +119,7 @@ aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &Creation
 
 #### For Development deployments:
 
-The Sparta DevKit VPC simulates air-gapped environments. It will create the required infrastructure to begin an install. This will include:
+The Sparta DevKit VPC simulates air-gapped environments. It will create the required infrastructure to begin a development install. This will include:
 * VPCs
     *   Private subnets (3 instances across availability zones)
     *   Public subnets (3 instances across availability zones)
@@ -135,9 +135,9 @@ The Sparta DevKit VPC simulates air-gapped environments. It will create the requ
 * Route 53 Configurations
 * Internet gateway
 
-For custom deployments, parts or all of this automation may be skipped as long as infrastructure meeting the requirements of the install are provided. Please see [Appendix](#appendix) for more information.
+For deployment on customer provided infrastructure for these componenets, please see [Appendix](#appendix) for more information.
 
-Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation. 
+Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation using Sparta DevKit VPC. 
 
 From ICLT (Specified in Development Checklist):
 
@@ -714,50 +714,7 @@ Execute breakdown script
 
 ### Appendix
 
-The following are attributes of infrastructure componenets that can be manually created if needed. These are to help guide any manual creation. If you wish to run portions of the devkit, two places need to edited: main.tf and run.yml.
-
-In main.tf, comment out Terraform modules that you don't want to run:
-```
-provider "aws" {
-  region = var.aws_region
-}
-
-/*module "vpc" {               <-- comment out undesired blocks as such
-  source = "./vpc"
-
-  cluster_name = var.cluster_name
-  cidr_blocks = var.cidr_blocks
-  aws_region = var.aws_region
-  default_tags = var.default_tags
-  aws_azs = var.aws_azs
-  vpc_private_subnet_cidrs = var.vpc_private_subnet_cidrs
-  vpc_public_subnet_cidrs = var.vpc_public_subnet_cidrs
-}*/
-
-...
-
-```
-
-In run.yml, comment out the corresponding variable inits:
-
-```
-...
-
-    ####### Terraform Init
-    - name: '{{ ansible_name_module }} | shell | terraform init'
-      shell: terraform init
-      loop:
-        - "{{ tf_module_path }}"
-        #- "{{ tf_module_path }}/vpc"                <--  comment out corresponding undesired blocks as such
-        - "{{ tf_module_path }}/security-groups"
-        - "{{ tf_module_path }}/iam-roles"
-        - "{{ tf_module_path }}/bastion-node"
-        - "{{ tf_module_path }}/registry-node"
-        #- "{{ tf_module_path }}/route-53"
-        
-...
-```
-
+The following are attributes of infrastructure componenets that can be manually created. These are simply to help guide any manual creation. 
 
 #### VPC
 
