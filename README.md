@@ -239,7 +239,6 @@ vi variables.tf
    <td>The file content from the sparta.pub key create above
    </td>
   </tr>
-</table>
   <tr>
    <td>rhcos_ami
    </td>
