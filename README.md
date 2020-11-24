@@ -117,7 +117,7 @@ aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &Creation
 ```
 
 
-#### For Development deployments:
+### Deployment:
 
 The Sparta DevKit VPC simulates air-gapped environments. It will create the required infrastructure to begin a development install. This will include:
 * VPCs
@@ -135,7 +135,7 @@ The Sparta DevKit VPC simulates air-gapped environments. It will create the requ
 * Route 53 Configurations
 * Internet gateway
 
-For deployment on customer provided infrastructure for these components, please see [Appendix](#appendix) for more information.
+For deployment on customer provided infrastructure, eg. VPC, please see [Appendix](#appendix) for qualifying configurations. After reading the appendix return here and proceed.
 
 Perform these steps to setup the required infrastructure for an air-gapped OCP installation using Sparta DevKit VPC. 
 
@@ -184,7 +184,7 @@ export OCP_VERSION=4.6.1
 ```
 
 2. Clone the “devkit-vpc” repo.
-If you are using an existing VPC that meets Sparta requirements(see #appendix) replace `DEVKIT_BRANCH` in the command below with `existing-vpc`.
+If you are using an existing VPC that meets Sparta requirements(see [Appendix](#appendix)) replace `DEVKIT_BRANCH` in the command below with `existing-vpc`.
 If you want the devkit to create your vpc for you replace `DEVKIT_BRANCH` in the command below with `$OCP_VERSION`.
 
 ```
@@ -225,7 +225,7 @@ vi variables.tf
    </td>
    <td>sparta
    </td>
-   <td>Set this to the name of the AWS Key Pair created in step 2 of 'For Development Deployments'. 
+   <td>Set this to the name of the AWS Key Pair created in step 2 of 'Deployment'. 
    </td>
   </tr>
   <tr>
@@ -239,9 +239,17 @@ vi variables.tf
   <tr>
    <td>rhcos_ami
    </td>
-   <td>Ami-009cbe327d180d666
+   <td>ami-009cbe327d180d666
    </td>
    <td>The RH CoreOS AMI 
+   </td>
+  </tr>
+  <tr>
+   <td>vpc_id
+   </td>
+   <td>sparta or vpc-xxxxxxxxxxxxxxxxx
+   </td>
+   <td>If using an existing VPC set this to the VPC's ID, otherwise use the string 'sparta'.
    </td>
   </tr>
   <tr>
@@ -249,7 +257,7 @@ vi variables.tf
    </td>
    <td>sparta
    </td>
-   <td>This needs to be set to the name of the AWS VPC where the openshift cluster will be installed. If using the DevKit for development to create the VPC, this will be 'sparta'.
+   <td>If using an existing VPC set this to the VPC's 'Name', otherwise use the string 'sparta'.
    </td>
   </tr>
   <tr>
@@ -706,8 +714,6 @@ Execute breakdown script
 ```
 
 ### Appendix
-
-If you are running this against an existing VPC, the DevKit for an existing VPC may be used instead. There are certain attributes to the VPC that will be expected by the install that are described in this section. 
 
 #### VPC
 
