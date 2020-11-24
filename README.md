@@ -117,33 +117,47 @@ aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &Creation
 ```
 
 
-#### For Development/Demo deployments:
+### Deployment:
 
-The Sparta DevKit VPC simulates air-gapped environments. Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation. 
+The Sparta DevKit VPC simulates air-gapped environments. It will create the required infrastructure to begin a development install. This will include:
+* VPCs
+    *   Private subnets (3 instances across availability zones)
+    *   Public subnets (3 instances across availability zones)
+* Security Groups
+    *   Master security group
+    *   Worker security group
+    *   Registry security group
+* IAM Roles
+    *   Master IAM policy
+    *   Worker IAM policy
+* Bastion Node
+* Registry Node
+* Route 53 Configurations
+* Internet gateway
+
+For deployment on customer provided infrastructure, eg. VPC, please see [Appendix](#appendix) for qualifying configurations. After reading the appendix return here and proceed.
+
+Perform these steps to setup the required infrastructure for an air-gapped OCP installation using Sparta DevKit VPC. 
 
 From ICLT (Specified in Development Checklist):
 
-
-
-1. Create AWS Key pair
-1. Create aws ssh key pair named sparta, this will download the file sparta.pem (https://docs.aws.amazon.com/cli/latest/userguide/cli-services-ec2-keypairs.html)
-2. Copy sparta.pem to a new working directory of your choice or the .ssh directory in your home directory
-3. Export the file path of the sparta.pem to an env var:
+1. Create AWS Key pair if needed. You may use an existing key if you like; note that we will refer to the name of the key as sparta throughout this doc. If using an existing key skip ahead to step #4
+1. Create aws ssh key pair named sparta, this will download the file sparta.pem (https://docs.aws.amazon.com/cli/latest/userguide/cli-services-ec2-keypairs.html).  
+1. Copy sparta.pem to a new working directory of your choice or the .ssh directory in your home directory  
+1. Export the file path of the sparta.pem to an env var:  
 
 ```
 export SPARTA_PRIVATE_KEY=[full path to sparta.pem]
 ```
 
-
-4. Set the correct permissions on the new folder and pem file:
+5. Set the correct permissions on the new folder and pem file:
 
 ```
 chmod 700 $(dirname $SPARTA_PRIVATE_KEY)
 chmod 600 $SPARTA_PRIVATE_KEY
 ```
 
-
-5. In that working directory run the following command: 
+6. In that working directory run the following command: 
 
 ```
 ssh-keygen -y -f \
@@ -151,14 +165,14 @@ ssh-keygen -y -f \
 ```
 
 
-6. Upload RHCOS AMI to AWS when in GovCloud
+7. Upload RHCOS AMI to AWS when in GovCloud
 
-7. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
+8. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
 
 Here is a link to the required VMDK for the RHCOS AMI upload:
 https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/rhcos-aws.x86_64.vmdk.gz
 
-8. If in the commercial cloud please find the ami for your region from the following link:
+9. If in the commercial cloud please find the ami for your region from the following link:
 https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
 
 
@@ -169,11 +183,12 @@ https://docs.openshift.com/container-platform/4.6/installing/installing_aws/inst
 export OCP_VERSION=4.6.1
 ```
 
-
-2. Clone the “devkit-vpc” repo:
+2. Clone the “devkit-vpc” repo.
+If you are using an existing VPC that meets Sparta requirements(see [Appendix](#appendix)) replace `DEVKIT_BRANCH` in the command below with `existing-vpc`.
+If you want the devkit to create your vpc for you replace `DEVKIT_BRANCH` in the command below with `$OCP_VERSION`.
 
 ```
-git clone --branch $OCP_VERSION \
+git clone --branch [DEVKIT_BRANCH] \
    https://github.com/CodeSparta/devkit-vpc.git
 ```
 
@@ -194,34 +209,6 @@ vi variables.tf
 
 5. Use the following table for assistance when setting the terraform deployment variables (Note: you’re only required to fill out the variables in this table, leave the remaining vars as is):
 
-<table>
-  <tr>
-   <td>
-<strong>Variable Name</strong>
-   </td>
-   <td><strong>Required</strong>
-   </td>
-   <td><strong>Explanation</strong>
-   </td>
-  </tr>
-  <tr>
-   <td>aws_ssh_key
-   </td>
-   <td>sparta
-   </td>
-   <td>AWS Key Pair name from above 
-   </td>
-  </tr>
-  <tr>
-   <td>ssh_pub_key
-   </td>
-   <td>to get this value execute the following command: `cat $(dirname $SPARTA_PRIVATE_KEY)/sparta.pub`
-   </td>
-   <td>The file content from the sparta.pub key create above
-   </td>
-  </tr>
-</table>
-<br>
 <br>
 <table>
   <tr>
@@ -234,11 +221,43 @@ vi variables.tf
    </td>
   </tr>
   <tr>
+   <td>aws_ssh_key
+   </td>
+   <td>sparta
+   </td>
+   <td>Set this to the name of the AWS Key Pair created in step 2 of 'Deployment'. 
+   </td>
+  </tr>
+  <tr>
+   <td>ssh_pub_key
+   </td>
+   <td>to get this value execute the following command: `cat $(dirname $SPARTA_PRIVATE_KEY)/sparta.pub`
+   </td>
+   <td>The file content from the sparta.pub key create above
+   </td>
+  </tr>
+  <tr>
    <td>rhcos_ami
    </td>
-   <td>Ami-009cbe327d180d666
+   <td>ami-009cbe327d180d666
    </td>
    <td>The RH CoreOS AMI 
+   </td>
+  </tr>
+  <tr>
+   <td>vpc_id
+   </td>
+   <td>sparta or vpc-xxxxxxxxxxxxxxxxx
+   </td>
+   <td>If using an existing VPC set this to the VPC's ID, otherwise use the string 'sparta'.
+   </td>
+  </tr>
+  <tr>
+   <td>cluster_name
+   </td>
+   <td>sparta
+   </td>
+   <td>If using an existing VPC set this to the VPC's 'Name', otherwise use the string 'sparta'.
    </td>
   </tr>
   <tr>
@@ -694,3 +713,104 @@ Execute breakdown script
 ./devkit-destroy-vpc.sh
 ```
 
+### Appendix
+
+#### VPC
+
+The VPC name, id and IPv4 CIDR block will need to be provided at various points of the install process. Also, the cluster_name variable in the install will need to be set to the VPC name. 
+
+VPC Example
+```
+Name tag: ${cluster_name}
+IPv4 CIDR block: 10.0.0.0/16
+IPv6 CIDR block:
+```
+
+#### Subnets
+
+The install expects that there will be a public facing subnet group and a private subnet group. Additionally, each subnet group will span three availability zones.
+
+Public Subnet Example
+```
+Name tag: ${cluster_name}-public-us-gov-west-1{a,b,c}
+VPC: ${vpc_id}
+Availability Zone: us-gov-west-1{a,b,c}
+IPv4 CIDR block: 10.0.{0,1,2}.0/24
+```
+
+Private Subnet Example
+```
+Name tag: ${cluster_name}-private-us-gov-west-1{a,b,c}
+VPC: ${vpc_id}
+Availability Zone: us-gov-west-1{a,b,c}
+IPv4 CIDR block: 10.0.{3,4,5}.0/2
+```
+
+#### Service Endpoints
+
+Service Endpoints for EC2, Elastic Loadbalancer, and S3 will be needed during the install in order to access the AWS APIs for these services.
+
+Service endpoint for S3 Example:
+```
+Service name: com.amazonaws.us-gov-west-1.s3
+VPC: ${vpc_id}
+Route table: ${private_route_table_id}
+Custom:
+{
+  "Version": "2008-10-17",
+  "Statement": [
+	{
+  	"Principal": "*",
+  	"Action": "*",
+  	"Effect": "Allow",
+  	"Resource": "*"
+	}
+  ]
+}
+Tags:
+Name: manual-test-pri-s3-vpce
+“kubernetes.io/cluster/${cluster_name}", "owned" 
+```
+
+Service endpoint for EC2 Example:
+```
+Service name: com.amazonaws.us-gov-west-1.elasticloadbalancing
+VPC: ${vpc_id}
+Endpoint type: Interface
+Private DNS: true
+Security groups:  ${cluster_name}-elb-vpce
+Subnets: ${private_subnet_ids}
+Tags:
+	Name: ${cluster_name}-elb-vpce
+```
+
+Service endpoint for ELB Example:
+```
+Service name: com.amazonaws.us-gov-west-1.elasticloadbalancing
+VPC: ${vpc_id}
+Endpoint type: Interface
+Private DNS: true
+Security groups:  ${cluster_name}-elb-vpce
+Subnets: ${private_subnet_ids}
+Tags:
+	Name: ${cluster_name}-elb-vpce
+```
+
+#### Route 53
+
+In addition to the VPC, There needs to be a private zone for the cluster subdomain in Route 53.
+
+Hosted Zone Example
+```
+Domain Name: ${cluster_name}.${cluster_domain}
+Type: private
+```
+
+After running the DevKit to create the Registry Node, a record will need to be added to the hosted zone for the registry node.
+
+```
+Record Name: registry.${cluster_name}.${cluster_domain}
+Type: A
+Routing Policy: Simple
+Value/Route traffic to: ${registry_node_private_ipv4}
+```
