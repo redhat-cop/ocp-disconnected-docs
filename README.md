@@ -135,33 +135,29 @@ The Sparta DevKit VPC simulates air-gapped environments. It will create the requ
 * Route 53 Configurations
 * Internet gateway
 
-For deployment on customer provided infrastructure for these componenets, please see [Appendix](#appendix) for more information.
+For deployment on customer provided infrastructure for these components, please see [Appendix](#appendix) for more information.
 
-Perform these steps to setup the required infrastructure for a simulated air-gapped OCP installation using Sparta DevKit VPC. 
+Perform these steps to setup the required infrastructure for an air-gapped OCP installation using Sparta DevKit VPC. 
 
 From ICLT (Specified in Development Checklist):
 
-
-
-1. Create AWS Key pair
-1. Create aws ssh key pair named sparta, this will download the file sparta.pem (https://docs.aws.amazon.com/cli/latest/userguide/cli-services-ec2-keypairs.html)
-2. Copy sparta.pem to a new working directory of your choice or the .ssh directory in your home directory
-3. Export the file path of the sparta.pem to an env var:
+1. Create AWS Key pair if needed. You may use an existing key if you like; note that we will refer to the name of the key as sparta throughout this doc. If using an existing key skip ahead to step #4
+1. Create aws ssh key pair named sparta, this will download the file sparta.pem (https://docs.aws.amazon.com/cli/latest/userguide/cli-services-ec2-keypairs.html).  
+1. Copy sparta.pem to a new working directory of your choice or the .ssh directory in your home directory  
+1. Export the file path of the sparta.pem to an env var:  
 
 ```
 export SPARTA_PRIVATE_KEY=[full path to sparta.pem]
 ```
 
-
-4. Set the correct permissions on the new folder and pem file:
+5. Set the correct permissions on the new folder and pem file:
 
 ```
 chmod 700 $(dirname $SPARTA_PRIVATE_KEY)
 chmod 600 $SPARTA_PRIVATE_KEY
 ```
 
-
-5. In that working directory run the following command: 
+6. In that working directory run the following command: 
 
 ```
 ssh-keygen -y -f \
@@ -169,14 +165,14 @@ ssh-keygen -y -f \
 ```
 
 
-6. Upload RHCOS AMI to AWS when in GovCloud
+7. Upload RHCOS AMI to AWS when in GovCloud
 
-7. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
+8. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
 
 Here is a link to the required VMDK for the RHCOS AMI upload:
 https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/rhcos-aws.x86_64.vmdk.gz
 
-8. If in the commercial cloud please find the ami for your region from the following link:
+9. If in the commercial cloud please find the ami for your region from the following link:
 https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
 
 
@@ -187,11 +183,12 @@ https://docs.openshift.com/container-platform/4.6/installing/installing_aws/inst
 export OCP_VERSION=4.6.1
 ```
 
-
-2. Clone the “devkit-vpc” repo:
+2. Clone the “devkit-vpc” repo.
+If you are using an existing VPC that meets Sparta requirements(see #appendix) replace `DEVKIT_BRANCH` in the command below with `existing-vpc`.
+If you want the devkit to create your vpc for you replace `DEVKIT_BRANCH` in the command below with `$OCP_VERSION`.
 
 ```
-git clone --branch $OCP_VERSION \
+git clone --branch [DEVKIT_BRANCH] \
    https://github.com/CodeSparta/devkit-vpc.git
 ```
 
