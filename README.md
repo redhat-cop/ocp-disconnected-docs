@@ -212,34 +212,6 @@ vi variables.tf
 
 5. Use the following table for assistance when setting the terraform deployment variables (Note: you’re only required to fill out the variables in this table, leave the remaining vars as is):
 
-<table>
-  <tr>
-   <td>
-<strong>Variable Name</strong>
-   </td>
-   <td><strong>Required</strong>
-   </td>
-   <td><strong>Explanation</strong>
-   </td>
-  </tr>
-  <tr>
-   <td>aws_ssh_key
-   </td>
-   <td>sparta
-   </td>
-   <td>AWS Key Pair name from above 
-   </td>
-  </tr>
-  <tr>
-   <td>ssh_pub_key
-   </td>
-   <td>to get this value execute the following command: `cat $(dirname $SPARTA_PRIVATE_KEY)/sparta.pub`
-   </td>
-   <td>The file content from the sparta.pub key create above
-   </td>
-  </tr>
-</table>
-<br>
 <br>
 <table>
   <tr>
@@ -252,11 +224,36 @@ vi variables.tf
    </td>
   </tr>
   <tr>
+   <td>aws_ssh_key
+   </td>
+   <td>sparta
+   </td>
+   <td>Set this to the name of the AWS Key Pair created in step 2 of 'For Development Deployments'. 
+   </td>
+  </tr>
+  <tr>
+   <td>ssh_pub_key
+   </td>
+   <td>to get this value execute the following command: `cat $(dirname $SPARTA_PRIVATE_KEY)/sparta.pub`
+   </td>
+   <td>The file content from the sparta.pub key create above
+   </td>
+  </tr>
+</table>
+  <tr>
    <td>rhcos_ami
    </td>
    <td>Ami-009cbe327d180d666
    </td>
    <td>The RH CoreOS AMI 
+   </td>
+  </tr>
+  <tr>
+   <td>cluster_name
+   </td>
+   <td>sparta
+   </td>
+   <td>This needs to be set to the name of the AWS VPC where the openshift cluster will be installed. If using the DevKit for development to create the VPC, this will be 'sparta'.
    </td>
   </tr>
   <tr>
