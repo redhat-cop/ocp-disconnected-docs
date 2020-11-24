@@ -707,17 +707,44 @@ Execute breakdown script
 
 ### Appendix
 
-The following are attributes of infrastructure componenets that can be manually created. These are simply to help guide any manual creation. 
+If you are running this against an existing VPC, the DevKit for an existing VPC may be used instead. There are certain attributes to the VPC that will be expected by the install that are described in this section. 
 
 #### VPC
 
+The VPC name, id and IPv4 CIDR block will need to be provided at various points of the install process. Also, the cluster_name variable in the install will need to be set to the VPC name. 
+
+VPC Example
 ```
 Name tag: ${cluster_name}
 IPv4 CIDR block: 10.0.0.0/16
 IPv6 CIDR block:
 ```
 
-Service endpoint for S3:
+#### Subnets
+
+The install expects that there will be a public facing subnet group and a private subnet group. Additionally, each subnet group will span three availability zones.
+
+Public Subnet Example
+```
+Name tag: ${cluster_name}-public-us-gov-west-1{a,b,c}
+VPC: ${vpc_id}
+Availability Zone: us-gov-west-1{a,b,c}
+IPv4 CIDR block: 10.0.{0,1,2}.0/24
+```
+
+Private Subnet Example
+```
+Name tag: ${cluster_name}-private-us-gov-west-1{a,b,c}
+VPC: ${vpc_id}
+Availability Zone: us-gov-west-1{a,b,c}
+IPv4 CIDR block: 10.0.{3,4,5}.0/2
+```
+
+#### Service Endpoints
+
+Service Endpoints for EC2, Elastic Loadbalancer, and S3 will be needed during the install in order to access the AWS APIs for these services.
+
+Service endpoint for S3 Example:
 ```
 Service name: com.amazonaws.us-gov-west-1.s3
 VPC: ${vpc_id}
@@ -739,7 +766,7 @@ Name: manual-test-pri-s3-vpce
 “kubernetes.io/cluster/${cluster_name}", "owned" 
 ```
 
-Service endpoint for EC2:
+Service endpoint for EC2 Example:
 ```
 Service name: com.amazonaws.us-gov-west-1.elasticloadbalancing
 VPC: ${vpc_id}
@@ -751,7 +778,7 @@ Tags:
 	Name: ${cluster_name}-elb-vpce
 ```
 
-Service endpoint for ELB:
+Service endpoint for ELB Example:
 ```
 Service name: com.amazonaws.us-gov-west-1.elasticloadbalancing
 VPC: ${vpc_id}
@@ -761,4 +788,23 @@ Security groups:  ${cluster_name}-elb-vpce
 Subnets: ${private_subnet_ids}
 Tags:
 	Name: ${cluster_name}-elb-vpce
+```
+
+#### Route 53
+
+In addition to the VPC, There needs to be a private zone for the cluster subdomain in Route 53.
+
+Hosted Zone Example
+```
+Domain Name: ${cluster_name}.${cluster_domain}
+Type: private
+```
+
+After running the DevKit to create the Registry Node, a record will need to be added to the hosted zone for the registry node.
+
+```
+Record Name: registry.${cluster_name}.${cluster_domain}
+Type: A
+Routing Policy: Simple
+Value/Route traffic to: ${registry_node_private_ipv4}
 ```
