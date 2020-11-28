@@ -615,7 +615,7 @@ cat /root/platform/secrets/cluster/auth/kubeadmin-password
 
 
 ```
-oc get route -n openshift-console console | awk '/console/{print $2}'
+oc get route -n openshift-console console | awk '/console/{print $2}' or oc whoami --show-console
 ```
 
 
