@@ -45,7 +45,7 @@ Red Hat provides cloud-provider templates to help you get started in building yo
 Sparta is a customized UPI install with additional tools to help facilitate a disconnected build to the requirements of Cloud One’s IL2 AWS GovCloud environment (C1DL). Some of the unique challenges in that environment include:
 
 
-
+*   Disconnected AWS GovCloud
 *   Can’t create IAM roles
 *   Can’t create ELBs
 *   Existing VPCs configured specifically for C1DL
@@ -53,6 +53,8 @@ Sparta is a customized UPI install with additional tools to help facilitate a di
 *   Multiple subnets provided for different purposes (common, apps, etc.)
 
 An architecture overview for Sparta is available [here](https://codectl.io/docs/overview) and the [github page](https://github.com/CodeSparta).
+
+Sparta is under continuous development to continue to better target the use cases of our DoD customers.
 
 **Considerations When Installing OpenShift Disconnected**
 
@@ -191,18 +193,11 @@ The table below will compare features of IPI vs UPI to help you decide what is b
 
 In this section, we will walk you through installations using each of the methods described above.
 
-### Installing OpenShift in Disconnected AWS GovCloud using IPI
-
-TO DO
-
 ### Installing OpenShift in Disconnected Microsoft Azure Government using IPI
 
-TO DO - add notes and link to video
+[OpenShift IPI on MAG](IPIonMAGInstall.md)
 
 ## Installing OpenShift in Disconnected AWS GovCloud using Sparta
 
 [Sparta Install Docs](SpartaInstall.md)
 
-TO DO - UPI videos
-
-TO DO - talk about operators
