@@ -6,18 +6,16 @@
 
 This guide is intended to demonstrate how to perform the OpenShift installation using the IPI method on Microsoft Azure Government. In addition, the guide will walk through performing this installation on an existing disconnected network. In other words the network does not allow access to and from the internet.
 
+## YouTube Video
+
+A video that walks through this guide is available here: https://youtu.be/JcoTBcm3cIc
+
 ## MAG Configuration Requirements
 
 In this guide, we will install OpenShift onto an existing virtual network. This virtual network will contain two private subnets that are firewalled off from access to and from the internet. As we will need a way to gain access to those subnets, there is one subnet that will be the public subnet and that will host the bastion node from which we will use to access the private network. The following section entitled Example MAG configuration details the network configuration used in the guide. While the internet is firewalled off from the private network, we still need to allow access to the Azure and Azure Government cloud APIs. Without that we will not be able to install a cloud aware OpenShift cluster. Please note the firewall rules created that allow this access to the Azure cloud APIs.
 
 This guide will assume that the user has valid accounts and subscriptions to both Red Hat OpenShift and MS Azure Government. This guide will also assume that an SSH keypair was created and the files azure-key.pem and azure-key.pub both exist.
 
-
-## YouTube Video
-
-A video that walks through this guide is available here: 
-
-https://youtu.be/JcoTBcm3cIc
 
 ### Example MAG Configuration
 
