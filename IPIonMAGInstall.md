@@ -31,6 +31,8 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 
 For the purpose of this demo, it is the assumed that these components will be provided by the user or the cloud administrator. However, IPI can also create these components for you, if desired. Please create or provide components according to the examples in this section. 
 
+ If you have already created and validated these resources, please skip to the Installing OpenShift section. 
+
 #### 1. Obtain Azure CLI and login
 
 Use the link below and follow the instructions to install the Azure CLI
