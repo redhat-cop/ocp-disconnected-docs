@@ -312,6 +312,8 @@ ssh -i ~/.ssh/azure-key.pem registry.<DOMAIN>:~
 
 Start Image Registry
 
+For the purpose of this demo, we will use a temporary registry to serve the OpenShift install media. PLEASE NOTE: you should replace this step with a registry of your choice.
+
 
 ```
 #From Registry
