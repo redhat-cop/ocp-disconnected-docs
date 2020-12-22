@@ -273,6 +273,14 @@ sudo lvresize -r -L +125G /dev/mapper/rootvg-homelv
 
 ## OpenShift Deployment
 
+### YouTube Video
+
+Here is a video that follows the directions in the next section
+
+https://youtu.be/JcoTBcm3cIc
+
+### Directions
+
 Create Bundle on Bastion
 
 In order to capture all the artifacts needed to install openshift, this guide will use a tool called openshift4_mirror. Please see [https://github.com/RedHatGov/openshift4-mirror](https://github.com/RedHatGov/openshift4-mirror) for more information about this tool. In addition, the pull-secret will need to be obtained from [https://cloud.redhat.com/openshift/install/pull-secret](https://cloud.redhat.com/openshift/install/pull-secret).  If the operator catalogs are also needed, ensure that there is enough disk space and remove the --skip-catalogs flag.
