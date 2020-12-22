@@ -18,8 +18,6 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 
  The following section may be used to create a virtual network with the following components.
 
-
-
 *   Service Principal Account
 *   Azure Virtual Network
 *   Private DNS zone
@@ -28,7 +26,9 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 *   Bastion Host
 *   Registry Host
 
-Obtain Azure CLI and login
+For the purpose of this demo, it is the assumed that these components will be provided by the user or the cloud administrator. However, IPI can also create these components for you, if desired. Please create or provide components according to the examples in this section. 
+
+#### 1. Obtain Azure CLI and login
 
 Use the link below and follow the instructions to install the Azure CLI
 
@@ -36,7 +36,7 @@ Use the link below and follow the instructions to install the Azure CLI
 
 *   [https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-yum?view=azure-cli-latest](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-yum?view=azure-cli-latest)
 
-Login to azure and set the cloud provider
+Login to Azure and set the cloud provider
 
 
 ```
@@ -46,7 +46,7 @@ az cloud set --name AzureUSGovernment
 ```
 
 
-Create Service Principal account
+#### 2. Create Service Principal account
 
 Use the link below and follow the instructions to create the Service Principal account. Make note of the subscription id, tenant id, client id and password token, these will be used later in this guide.
 
@@ -54,7 +54,7 @@ Use the link below and follow the instructions to create the Service Principal a
 
 *   [https://docs.openshift.com/container-platform/4.6/installing/installing_azure/installing-azure-account.html#installation-azure-service-principal_installing-azure-account](https://docs.openshift.com/container-platform/4.6/installing/installing_azure/installing-azure-account.html#installation-azure-service-principal_installing-azure-account)
 
-Create Resource Group
+#### 3. Create Resource Group
 
 Create a resource group where AZURE_REGION is either usgovtexas or usgovvirginia
 
@@ -64,7 +64,7 @@ az group create -l <AZURE_REGION> -n <RESOURCE_GROUP>
 ```
 
 
-Create VNET
+#### 4. Create VNET
 
 
 ```
@@ -72,7 +72,7 @@ az network vnet create -g <RESOURCE_GROUP> -n <VNET_NAME> --address-prefixes 10.
 ```
 
 
-Create FW Rules and Route table for Private Subnets
+#### 5. Create FW Rules and Route table for Private Subnets
 
 The Firewall will block traffic to and from the internet. In order for the OpenShift cluster to be cloud aware and to be able to run the IPI method of install, we need to allow access to the Azure and Azure for Government APIs.
 
@@ -145,7 +145,7 @@ az network firewall application-rule create \
 ```
 
 
-Create Public Subnet
+#### 6. Create Public Subnet for Bastion
 
 
 ```
@@ -157,7 +157,7 @@ az network vnet subnet create \
 ```
 
 
-Create Private Subnet for Control Plane
+#### 7. Create Private Subnet for Control Plane
 
 
 ```
@@ -170,7 +170,7 @@ az network vnet subnet create  \
 ```
 
 
-Create Private Subnet for Compute Plane
+#### 8. Create Private Subnet for Compute Plane
 
 
 ```
@@ -183,7 +183,7 @@ az network vnet subnet create \
 ```
 
 
-Create Bastion host in Public Subnet
+#### 9. Create Bastion host in Public Subnet
 
 Note: Ensure that the file azure-key.pub exists in the current working directory. Also, if the operator catalog will also be downloaded copied over, please adjust the os-disk-size-gb value accordingly.
 
@@ -200,7 +200,7 @@ az vm create -n <BASTION> -g <RESOURCE_GROUP> \
 ```
 
 
-Create Registry Host in Private Subnet
+#### 10. Create Registry Host in Private Subnet
 
 Note: Ensure that the file azure-key.pub exists in the current working directory. Also, if the operator catalog will also be downloaded copied over, please adjust the os-disk-size-gb value accordingly.
 
@@ -217,7 +217,7 @@ az vm create -n <REGISTRY> -g <RESOURCE_GROUP> \
 ```
 
 
-Create Private DNS and add A Record for Registry host
+#### 11. Create Private DNS and add A Record for Registry host
 
 The REGISTRY_IP is the private ip address assigned to the Registry host in the previous step.
 
@@ -237,7 +237,7 @@ az network private-dns record-set a add-record \
 ```
 
 
-Resize Logical Volume on Bastion
+#### 12. Resize Logical Volume on Bastion
 
 
 ```
@@ -254,7 +254,7 @@ sudo lvresize -r -L +125G /dev/mapper/rootvg-homelv
 ```
 
 
-Resize Logical Volume on Registry
+#### 13. Resize Logical Volume on Registry
 
 
 ```
