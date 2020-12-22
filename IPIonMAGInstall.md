@@ -6,13 +6,18 @@
 
 This guide is intended to demonstrate how to perform the OpenShift installation using the IPI method on Microsoft Azure Government. In addition, the guide will walk through performing this installation on an existing disconnected network. In other words the network does not allow access to and from the internet.
 
-
 ## MAG Configuration Requirements
 
 In this guide, we will install OpenShift onto an existing virtual network. This virtual network will contain two private subnets that are firewalled off from access to and from the internet. As we will need a way to gain access to those subnets, there is one subnet that will be the public subnet and that will host the bastion node from which we will use to access the private network. The following section entitled Example MAG configuration details the network configuration used in the guide. While the internet is firewalled off from the private network, we still need to allow access to the Azure and Azure Government cloud APIs. Without that we will not be able to install a cloud aware OpenShift cluster. Please note the firewall rules created that allow this access to the Azure cloud APIs.
 
 This guide will assume that the user has valid accounts and subscriptions to both Red Hat OpenShift and MS Azure Government. This guide will also assume that an SSH keypair was created and the files azure-key.pem and azure-key.pub both exist.
 
+
+## YouTube Video
+
+A video that walks through this guide is available here: 
+
+https://youtu.be/JcoTBcm3cIc
 
 ### Example MAG Configuration
 
@@ -183,7 +188,7 @@ az network vnet subnet create \
 ```
 
 
-#### 9. Create Bastion host in Public Subnet
+#### 9. Create Bastion Host in Public Subnet
 
 Note: Ensure that the file azure-key.pub exists in the current working directory. Also, if the operator catalog will also be downloaded copied over, please adjust the os-disk-size-gb value accordingly.
 
@@ -271,17 +276,11 @@ sudo lvresize -r -L +125G /dev/mapper/rootvg-homelv
 
 
 
-## OpenShift Deployment
+## OpenShift Deployment Using IPI on MAG
 
-### YouTube Video
+### Bundling Content and Moving it to the Disconnected Environment 
 
-Here is a video that follows the directions in the next section
-
-https://youtu.be/JcoTBcm3cIc
-
-### Directions
-
-Create Bundle on Bastion
+#### 1. Create Bundle on Bastion
 
 In order to capture all the artifacts needed to install openshift, this guide will use a tool called openshift4_mirror. Please see [https://github.com/RedHatGov/openshift4-mirror](https://github.com/RedHatGov/openshift4-mirror) for more information about this tool. In addition, the pull-secret will need to be obtained from [https://cloud.redhat.com/openshift/install/pull-secret](https://cloud.redhat.com/openshift/install/pull-secret).  If the operator catalogs are also needed, ensure that there is enough disk space and remove the --skip-catalogs flag.
 
@@ -307,7 +306,7 @@ tar czf OpenShiftBundle-4.6.3.tgz 4.6.3/
 ```
 
 
-Push Bundle to Registry
+#### 2. Push Bundle to Registry
 
 
 ```
@@ -318,7 +317,7 @@ ssh -i ~/.ssh/azure-key.pem registry.<DOMAIN>:~
 ```
 
 
-Start Image Registry
+#### 3. Start Image Registry
 
 For the purpose of this demo, we will use a temporary registry to serve the OpenShift install media. PLEASE NOTE: you should replace this step with a registry of your choice.
 
@@ -342,8 +341,9 @@ curl -k https://registry.<DOMAIN>:5000/v2/openshift/
 ```
 
 
-Prep install-config.yaml
+#### 4. Prep install-config.yaml
 
+The install-config.yaml file provides the installer with the parameters for the deployment. First, create the file. 
 
 ```
 #From Registry
@@ -354,9 +354,10 @@ vi install-config.yaml # copy and paste install-config.template from below
 
 #Edit template as needed
 ```
-
-
-install-config.template
+ 
+#### 5. install-config.template
+ 
+ The template below has defined the parameters for this use case. Please supply the user specific content. 
 
 
 ```
@@ -426,7 +427,7 @@ sshKey: |
 ```
 
 
-Run OpenShift Install
+### Run OpenShift Install
 
 The first time the install is run, it will prompt for the azure subscription id, tenant id, client id, and client secret/password.  These values will need to correspond to the service principal account required for the installation.  It will then save this to $HOME/.azure/osServicePrincipal.json and will reference that file for future runs.
 
