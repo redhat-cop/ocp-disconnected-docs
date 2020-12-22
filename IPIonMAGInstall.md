@@ -274,7 +274,7 @@ sudo lvresize -r -L +125G /dev/mapper/rootvg-homelv
 
 
 
-## OpenShift Deployment Using IPI on MAG
+## Installing OpenShift 
 
 ### Bundling Content and Moving it to the Disconnected Environment 
 
