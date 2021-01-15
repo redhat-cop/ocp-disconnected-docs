@@ -52,17 +52,20 @@ az cloud set --name AzureUSGovernment
 
 #### 2. Create/Request Service Principal account(s)
 
-In order to perform the install, one or more Service Principal accounts will need to be created. In order to perform the install, a Service Account with the role of ‘Contributor’ will need to be created. In addition, there are a few services that require a Service Account in order to provide cloud aware functionality.  This guide will use one Service Account for each service. However, the user may opt to create additional Service Principal accounts as needed. The following document details how to obtain what credentials are needed.
-
-
+In order to perform the install, one or more Service Principal accounts will need to be created. In order to perform the install, a Service Account with the role of ‘Contributor’ and 'User Access Administrator' will need to be created. In addition, there are a few services that require a Service Account in order to provide cloud aware functionality.  This guide will use two Service Principal Accounts, one for the installation and one for each service. However, the user may opt to create additional Service Principal accounts as needed. The following document details how to obtain what credentials are needed.
 
 *   [https://docs.openshift.com/container-platform/4.6/installing/installing_azure/manually-creating-iam-azure.html](https://docs.openshift.com/container-platform/4.6/installing/installing_azure/manually-creating-iam-azure.html) 
 
-The following command may be used to create the Service Principal. Make note of the subscription id, tenant id, client id and password token, these will be used later in this guide. The following documentation provides additional information regarding the creation of service principals.
+The following commands may be used to create the Service Principal for the installation. Make note of the subscription id, tenant id, client id and password token, these will be used later in this guide.
 
 
 ```
 az ad sp create-for-rbac --role Contributor --name <service_principal>
+
+az role assignment create --role "User Access Administrator" \
+    --assignee-object-id $(az ad sp list --filter "appId eq '<appId>'" \ 
+       | jq '.[0].objectId' -r)
+
 ```
 
 
@@ -413,7 +416,7 @@ metadata:
   name: <CCO_CR_NAME>
   namespace: <CCO_CR_NAMESPACE>
 stringData:
-  azure_subscription_id: "<SUBSCRIPTION_ID>f"
+  azure_subscription_id: "<SUBSCRIPTION_ID>"
   azure_client_id: "<CLIENT_ID>"
   azure_client_secret: "<CLIENT_SECRET>"
   azure_tenant_id: "<TENANT_ID>"
