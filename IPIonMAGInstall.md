@@ -282,7 +282,7 @@ sudo lvresize -r -L +125G /dev/mapper/rootvg-homelv
 
 #### 1. Create Bundle on Bastion
 
-In order to capture all the artifacts needed to install openshift, this guide will use a tool called openshift4_mirror. Please see [https://github.com/RedHatGov/openshift4-mirror](https://github.com/RedHatGov/openshift4-mirror) for more information about this tool. In addition, the pull-secret will need to be obtained from [https://cloud.redhat.com/openshift/install/pull-secret](https://cloud.redhat.com/openshift/install/pull-secret).  If the operator catalogs are also needed, ensure that there is enough disk space and remove the --skip-catalogs flag.
+In order to capture all the artifacts needed to install openshift, this guide will use a tool called openshift4_mirror. Please see [https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror](https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror) for more information about this tool. In addition, the pull-secret will need to be obtained from [https://cloud.redhat.com/openshift/install/pull-secret](https://cloud.redhat.com/openshift/install/pull-secret).  If the operator catalogs are also needed, ensure that there is enough disk space and remove the --skip-catalogs flag.
 
 
 ```

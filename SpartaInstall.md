@@ -179,7 +179,7 @@ If you want the devkit to create your vpc for you replace `DEVKIT_BRANCH` in the
 
 ```
 git clone --branch [DEVKIT_BRANCH] \
-   https://github.com/CodeSparta/devkit-vpc.git
+   https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/govcloud/devkit-vpc
 ```
 
 
