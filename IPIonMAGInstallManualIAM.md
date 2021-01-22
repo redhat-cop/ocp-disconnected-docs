@@ -6,6 +6,9 @@
 
 This guide is intended to demonstrate how to perform the OpenShift installation using the IPI method on Microsoft Azure Government. In addition, the guide will walk through performing this installation on an existing disconnected network. In other words the network does not allow access to and from the internet. And finally, this installation will not store administrative credentials and disable the cloud credential operator from automatically creating new service principal accounts for use by other services. Instead, those accounts will be created manually.
 
+## YouTube Video
+
+A video that walks through this guide is available here: https://youtu.be/cAdGCLQ15zI
 
 ## MAG Configuration Requirements
 
