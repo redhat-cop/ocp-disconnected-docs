@@ -1,0 +1,6 @@
+aws-ebs-csi-driver-operator
+cloud-credential-operator-iam-ro
+cloud-credential-operator-s3
+openshift-image-registry
+openshift-ingress
+openshift-machine-api-aws

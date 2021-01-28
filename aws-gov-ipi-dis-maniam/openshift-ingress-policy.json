@@ -1,0 +1,22 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "route53:ListHostedZones",
+        "route53:ChangeResourceRecordSets",
+        "tag:GetResources"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetUser"
+      ],
+      "Resource": "arn:aws-us-gov:iam::123456789012:user/openshift-ingress"
+    }
+  ]
+}

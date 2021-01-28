@@ -1,0 +1,157 @@
+1. Download and compress bundle on internet connected machine.
+   Prereqs:
+   This guide 
+   You will first need to retrieve a pull secret and enter it into the literals of the value for `--pull-secret` in the command below. Pull secrets can be obtained from https://cloud.redhat.com/openshift/install/aws/installer-provisioned
+
+    ```
+    podman run -it --security-opt label=disable -v ./:/app/bundle quay.io/redhatgov/openshift4_mirror:latest \
+      ./openshift_mirror bundle \
+      --openshift-version 4.6.3 \
+      --platform aws \
+      --skip-existing \
+      --skip-catalogs \
+      --pull-secret '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...'
+    git clone https://github.com/RedHatGov/ocp-disconnected-docs.git ./4.6.3/ocp-disconnected
+    rm -f ./4.6.3/rhcos/rhcos-aws.x86_64.vmdk.gz 
+    curl https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/4.6.1/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz -o ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz
+    tar -zcvf openshift-4-6-3.tar.gz 4.6.3
+    ```
+2. Transfer bundle from internet connected machine to disconnected vpc host.
+
+3. Extract bundle on disconnected vpc host.
+
+    ` tar -xzxf openshift-4-6-3.tar.gz `
+
+4. Create iam users and Policies.
+
+    ```
+    cd ./4.6.3/ocp-disconnected/policy-templates
+    chmod +x ../ocp-users.sh
+    ../ocp-users.sh prepPolicies
+    ../ocp-users.sh createUsers
+    cat account_names.txt
+    cd -
+    ```
+5. Using the output from the previous command, identify the new accounts and utilize your preferred method for generating and retrieving associated access ids and keys.
+
+6. Open and update the following file with the key id and key for each respective account.
+
+    ```
+    ./4.6.3/ocp-disconnected/operator-credential-template.yaml
+    ```
+
+7. Create S3 Bucket and attach policies.
+
+    ```
+    awsreg=$(aws configure get region)
+    s3name=$(date +%s"-rhcos")
+    aws iam create-role --role-name vmimport --assume-role-policy-document "file://4.6.3/ocp-disconnected/trust-policy.json"
+    envsubst < ./4.6.3/ocp-disconnected/role-policy-templ.json > ./4.6.3/ocp-disconnected/role-policy.json
+    aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document "file://4.6.3/ocp-disconnected/role-policy.json"
+    ```
+
+8. Upload RHCOS Image to S3
+
+    ```
+    gzip -d ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz
+    aws s3 mv ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk s3://${s3name}
+    ```
+
+9. Create AMI
+
+    ```
+    envsubst < ./4.6.3/ocp-disconnected/containers-templ.json > ./4.6.3/ocp-disconnected/containers.json
+    aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container ./4.6.3/ocp-disconnected/containers.json 
+    until [[ $resp == "completed" ]]; do sleep 2; echo $(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); done
+    snapid=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.SnapshotId')
+    aws ec2 register-image \
+      --region ${awsreg} \
+      --architecture x86_64 \ 
+      --description "rhcos-4.6.1-x86_64-aws.x86_64" \ 
+      --ena-support \
+      --name "rhcos-4.6.1-x86_64-aws.x86_64" \ 
+      --virtualization-type hvm \
+      --root-device-name '/dev/xvda' \
+      --block-device-mappings 'DeviceName=/dev/xvda,Ebs={DeleteOnTermination=true,SnapshotId=${snapid}}' 
+    ```
+
+10. Record the AMI ID from the output of the above command.
+
+
+
+11. Create registry cert on disconnected vpc host
+    ```
+    export SUBJ="/C=US/ST=Virginia/O=Red Hat/CN=${HOSTNAME}"
+    openssl req -newkey rsa:4096 -nodes -sha256 -keyout registry.key -x509 -days 365 -out registry.crt -subj "$SUBJ"
+    ```    
+
+12. Make a copy of the install config
+    ```
+    mkdir ./ocp-disconnected/config
+    cp ./ocp-disconnected/install-config-template.yaml ./ocp-disconnected/config/install-config.yaml
+    ```
+13. Edit install config
+    For this step, Open `./ocp-disconnected/config/install-config.yaml` and edit the following fields:
+
+    ```
+    baseDomain: i.e. example.com
+    additionalTrustBundle: copy and paste the content of ./registry.crt here.
+    imageContentSources:
+      mirrors: Only edit the registry hostname fields of this section. Make sure that you use the $HOSTNAME of the devices that you are currently using.
+    metadata:
+      name: i.e. test-cluster
+    networking:
+      machineNetwork:
+      - cidr: i.e. 10.0.41.0/20. Shorten or lengthen this list as needed.
+    platform:
+      aws:
+        region: the default region of your configured aws cli 
+        zones: A list of availability zones that you are deploying into. Shorten or lengthen this list as needed.
+        subnets: i.e. subnet-ef12d288. The length of this list must match the .networking.machineNetwork[].cidr length.
+        amiID: the AMI ID recorded from step 9
+        pullSecret: your pull secret enclosed in literals
+        sshKey: i.e ssh-rsa AAAAB3... No quotes
+    ```
+    Don't forget to save and close the file!
+
+5. Create manifests from install config.
+    ```
+    openshift-install create manifests --dir ./ocp-disconnected/config
+    ```
+
+5. Delete the installer generated secret
+    ```
+    rm ./4.6.3/ocp-disconnected/config/openshift/99_cloud-creds-secret.yaml 
+    ```
+13. create iam users and Policies
+
+    ```
+    cd ./4.6.3/ocp-disconnected
+    chmod +x ./ocp-users.sh
+    ./ocp-users.sh prepPolicies
+    ./ocp-users.sh createUsers
+    cat account_names.txt
+    ```
+6. Using the output from the previous command, identify the new accounts and utilize your preferred method for generating and retrieving associated access ids and keys.
+
+7. Open and update the following file with the key id and key for each respective account.
+
+    ```
+    ./4.6.3/ocp-disconnected/credentials.var
+    ```
+8. Create kubernetes credential secrets.
+
+    ```
+    source credentials.var | envsubst < ./4.6.3/ocp-disconnected/operator-credential-template.yaml > ./4.6.3/ocp-disconnected/operator-credentials.yaml
+    ```
+
+13. start up the registry
+    ```
+    oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key
+    ```
+
+14. Deploy the cluster
+
+    ```
+    openshift-install create cluster --dir ./4.6.3/ocp-disconnected/conifg
+    ```

@@ -1,0 +1,60 @@
+apiVersion: v1
+baseDomain: << Domain Name >>
+credentialsMode: Manual
+additionalTrustBundle: | 
+  -----BEGIN CERTIFICATE-----
+  MIIFtTCCA52gAwIBAgIUATPXseBaaRHE0Mgybh29VgOyZBUwDQYJKoZIhvcNAQEL
+  -----END CERTIFICATE-----
+imageContentSources:
+- mirrors:
+  - << registry-hostname >>:5000/openshift/release
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - << registry-hostname >>:5000/openshift/release
+  source: registry.svc.ci.openshift.org/ocp/release
+- mirrors:
+  - << registry-hostname >>:5000/openshift/release
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform:
+    aws:
+      type: m5.xlarge
+  replicas: 3
+metadata:
+  name: << Cluster Name >>
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: << Subnet/CIDR 1 >>
+  - cidr: << Subnet/CIDR 2 >>
+  - cidr: << Subnet/CIDR 3 >>
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  aws:
+    region: <<  AWS Region Name >>
+    zones:
+    - << Availability Zone Name 1 >>
+    - << Availability Zone Name 2 >>
+    - << Availability Zone Name 3 >>
+    subnets: 
+    - << Subnet ID 1 >>
+    - << Subnet ID 1 >>
+    - << Subnet ID 1 >>
+    amiID: << Your RHCOS AMI ID >>
+pullSecret: '<< Your Pull Secret Here >>'
+sshKey: << Your SSH KEY HERE >>
+fips: false 
+publish: Internal 
