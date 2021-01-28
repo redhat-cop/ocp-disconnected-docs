@@ -22,46 +22,29 @@
 
     ` tar -xzxf openshift-4-6-3.tar.gz `
 
-4. Create iam users and Policies.
 
-    ```
-    cd ./4.6.3/ocp-disconnected/policy-templates
-    chmod +x ../ocp-users.sh
-    ../ocp-users.sh prepPolicies
-    ../ocp-users.sh createUsers
-    cat account_names.txt
-    cd -
-    ```
-5. Using the output from the previous command, identify the new accounts and utilize your preferred method for generating and retrieving associated access ids and keys.
-
-6. Open and update the following file with the key id and key for each respective account.
-
-    ```
-    ./4.6.3/ocp-disconnected/operator-credential-template.yaml
-    ```
-
-7. Create S3 Bucket and attach policies.
+4. Create S3 Bucket and attach policies.
 
     ```
     awsreg=$(aws configure get region)
     s3name=$(date +%s"-rhcos")
-    aws iam create-role --role-name vmimport --assume-role-policy-document "file://4.6.3/ocp-disconnected/trust-policy.json"
-    envsubst < ./4.6.3/ocp-disconnected/role-policy-templ.json > ./4.6.3/ocp-disconnected/role-policy.json
-    aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document "file://4.6.3/ocp-disconnected/role-policy.json"
+    aws iam create-role --role-name vmimport --assume-role-policy-document "file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/trust-policy.json"
+    envsubst < ./4.6.3/ocp-disconnected/role-policy-templ.json > ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json
+    aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document "file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json"
     ```
 
-8. Upload RHCOS Image to S3
+5. Upload RHCOS Image to S3
 
     ```
     gzip -d ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz
     aws s3 mv ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk s3://${s3name}
     ```
 
-9. Create AMI
+6. Create AMI
 
     ```
     envsubst < ./4.6.3/ocp-disconnected/containers-templ.json > ./4.6.3/ocp-disconnected/containers.json
-    aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container ./4.6.3/ocp-disconnected/containers.json 
+    aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers.json 
     until [[ $resp == "completed" ]]; do sleep 2; echo $(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); done
     snapid=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.SnapshotId')
     aws ec2 register-image \
@@ -75,22 +58,22 @@
       --block-device-mappings 'DeviceName=/dev/xvda,Ebs={DeleteOnTermination=true,SnapshotId=${snapid}}' 
     ```
 
-10. Record the AMI ID from the output of the above command.
+7. Record the AMI ID from the output of the above command.
 
 
 
-11. Create registry cert on disconnected vpc host
+8. Create registry cert on disconnected vpc host
     ```
     export SUBJ="/C=US/ST=Virginia/O=Red Hat/CN=${HOSTNAME}"
     openssl req -newkey rsa:4096 -nodes -sha256 -keyout registry.key -x509 -days 365 -out registry.crt -subj "$SUBJ"
     ```    
 
-12. Make a copy of the install config
+9. Make a copy of the install config
     ```
     mkdir ./ocp-disconnected/config
-    cp ./ocp-disconnected/install-config-template.yaml ./ocp-disconnected/config/install-config.yaml
+    cp ./ocp-disconnected/aws-gov-ipi-dis-maniam/install-config-template.yaml ./ocp-disconnected/config/install-config.yaml
     ```
-13. Edit install config
+10. Edit install config
     For this step, Open `./ocp-disconnected/config/install-config.yaml` and edit the following fields:
 
     ```
@@ -114,12 +97,12 @@
     ```
     Don't forget to save and close the file!
 
-5. Create manifests from install config.
+11. Create manifests from install config.
     ```
     openshift-install create manifests --dir ./ocp-disconnected/config
     ```
 
-5. Delete the installer generated secret
+12. Delete the installer generated secret
     ```
     rm ./4.6.3/ocp-disconnected/config/openshift/99_cloud-creds-secret.yaml 
     ```
@@ -132,25 +115,25 @@
     ./ocp-users.sh createUsers
     cat account_names.txt
     ```
-6. Using the output from the previous command, identify the new accounts and utilize your preferred method for generating and retrieving associated access ids and keys.
+14. Using the output from the previous command, identify the new accounts and utilize your preferred method for generating and retrieving associated access ids and keys.
 
-7. Open and update the following file with the key id and key for each respective account.
-
-    ```
-    ./4.6.3/ocp-disconnected/credentials.var
-    ```
-8. Create kubernetes credential secrets.
+15. Open and update the following file with the key id and key for each respective account.
 
     ```
-    source credentials.var | envsubst < ./4.6.3/ocp-disconnected/operator-credential-template.yaml > ./4.6.3/ocp-disconnected/operator-credentials.yaml
+    ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/credentials.var
+    ```
+16. Create kubernetes credential secrets.
+
+    ```
+    source ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/credentials.var | envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/operator-credential-template.yaml > ./4.6.3/ocp-disconnected/config/openshift/operator-credentials.yaml
     ```
 
-13. start up the registry
+17. start up the registry
     ```
     oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key
     ```
 
-14. Deploy the cluster
+18. Deploy the cluster
 
     ```
     openshift-install create cluster --dir ./4.6.3/ocp-disconnected/conifg
