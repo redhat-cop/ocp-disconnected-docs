@@ -137,5 +137,5 @@
 18. Deploy the cluster
 
     ```
-    openshift-install create cluster --dir ./4.6.3/conifg
+    openshift-install create cluster --dir ./4.6.3/config
     ```

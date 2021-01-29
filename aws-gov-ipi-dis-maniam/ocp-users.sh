@@ -121,7 +121,6 @@ function prepPolicies() {
     oa=$(grep -Po 'arn.*(?<!")' $f)
     sed -i "s~$oa~$na~" $f
     jq '.PolicyDocument' $f > $u-policy.json
-    rm -f $f
   done
 
 }
