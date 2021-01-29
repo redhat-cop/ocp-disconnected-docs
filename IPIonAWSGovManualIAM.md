@@ -10,10 +10,10 @@
       --platform aws \
       --skip-existing \
       --skip-catalogs \
-      --pull-secret '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...'
-    git clone https://github.com/RedHatGov/ocp-disconnected-docs.git ./4.6.3/ocp-disconnected
-    rm -f ./4.6.3/rhcos/rhcos-aws.x86_64.vmdk.gz 
-    curl https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/4.6.1/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz -o ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz
+      --pull-secret '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...' && \
+    git clone https://github.com/RedHatGov/ocp-disconnected-docs.git ./4.6.3/ocp-disconnected && \
+    rm -f ./4.6.3/rhcos/rhcos-aws.x86_64.vmdk.gz && \
+    curl https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/4.6.1/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz -o ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz && \
     tar -zcvf openshift-4-6-3.tar.gz 4.6.3
     ```
 2. Transfer bundle from internet connected machine to disconnected vpc host.
@@ -26,10 +26,11 @@
 4. Create S3 Bucket and attach policies.
 
     ```
-    awsreg=$(aws configure get region)
-    s3name=$(date +%s"-rhcos")
+    export awsreg=$(aws configure get region)
+    export s3name=$(date +%s"-rhcos")
+    aws s3api create-bucket --bucket ${s3name} --region ${awsreg} --create-bucket-configuration LocationConstraint=${awsreg}
     aws iam create-role --role-name vmimport --assume-role-policy-document "file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/trust-policy.json"
-    envsubst < ./4.6.3/ocp-disconnected/role-policy-templ.json > ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json
+    envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy-templ.json > ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json
     aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document "file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json"
     ```
 
@@ -43,19 +44,19 @@
 6. Create AMI
 
     ```
-    envsubst < ./4.6.3/ocp-disconnected/containers-templ.json > ./4.6.3/ocp-disconnected/containers.json
-    aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers.json 
-    until [[ $resp == "completed" ]]; do sleep 2; echo $(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); done
+    envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers-templ.json > ./4.6.3/ocp-disconnected/containers.json
+    aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers.json 
+    until [[ $resp == "completed" ]]; do sleep 2; echo "Progress: "$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Progess')"\%"; resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); done
     snapid=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.SnapshotId')
     aws ec2 register-image \
       --region ${awsreg} \
-      --architecture x86_64 \ 
-      --description "rhcos-4.6.1-x86_64-aws.x86_64" \ 
+      --architecture x86_64 \
+      --description "rhcos-4.6.1-x86_64-aws.x86_64" \
       --ena-support \
-      --name "rhcos-4.6.1-x86_64-aws.x86_64" \ 
+      --name "rhcos-4.6.1-x86_64-aws.x86_64" \
       --virtualization-type hvm \
       --root-device-name '/dev/xvda' \
-      --block-device-mappings 'DeviceName=/dev/xvda,Ebs={DeleteOnTermination=true,SnapshotId=${snapid}}' 
+      --block-device-mappings 'DeviceName=/dev/xvda,Ebs={DeleteOnTermination=true,SnapshotId='${snapid}'}' 
     ```
 
 7. Record the AMI ID from the output of the above command.
@@ -70,11 +71,11 @@
 
 9. Make a copy of the install config
     ```
-    mkdir ./ocp-disconnected/config
-    cp ./ocp-disconnected/aws-gov-ipi-dis-maniam/install-config-template.yaml ./ocp-disconnected/config/install-config.yaml
+    mkdir ./4.6.3//config
+    cp ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/install-config-template.yaml ./4.6.3/config/install-config.yaml
     ```
 10. Edit install config
-    For this step, Open `./ocp-disconnected/config/install-config.yaml` and edit the following fields:
+    For this step, Open `./4.6.3/config/install-config.yaml` and edit the following fields:
 
     ```
     baseDomain: i.e. example.com
@@ -99,17 +100,17 @@
 
 11. Create manifests from install config.
     ```
-    openshift-install create manifests --dir ./ocp-disconnected/config
+    openshift-install create manifests --dir ./4.6.3/config
     ```
 
 12. Delete the installer generated secret
     ```
-    rm ./4.6.3/ocp-disconnected/config/openshift/99_cloud-creds-secret.yaml 
+    rm ./4.6.3/config/openshift/99_cloud-creds-secret.yaml 
     ```
 13. create iam users and Policies
 
     ```
-    cd ./4.6.3/ocp-disconnected
+    cd ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam
     chmod +x ./ocp-users.sh
     ./ocp-users.sh prepPolicies
     ./ocp-users.sh createUsers
@@ -125,7 +126,7 @@
 16. Create kubernetes credential secrets.
 
     ```
-    source ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/credentials.var | envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/operator-credential-template.yaml > ./4.6.3/ocp-disconnected/config/openshift/operator-credentials.yaml
+    source ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/credentials.var | envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/operator-credential-template.yaml > ./4.6.3/config/openshift/operator-credentials.yaml
     ```
 
 17. start up the registry
@@ -136,5 +137,5 @@
 18. Deploy the cluster
 
     ```
-    openshift-install create cluster --dir ./4.6.3/ocp-disconnected/conifg
+    openshift-install create cluster --dir ./4.6.3/conifg
     ```

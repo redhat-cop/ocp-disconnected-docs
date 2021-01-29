@@ -9,8 +9,8 @@
             "s3:ListBucket" 
          ],
          "Resource": [
-            "arn:${awsreg}:s3:::${s3name}",
-            "arn:${awsreg}:s3:::${s3name}/*"
+            "arn:aws-us-gov:s3:::${s3name}",
+            "arn:aws-us-gov:s3:::${s3name}/*"
          ]
       },
       {
@@ -23,8 +23,8 @@
             "s3:GetBucketAcl"
          ],
          "Resource": [
-            "arn:${awsreg}:s3:::${s3name}",
-            "arn:${awsreg}:s3:::${s3name}/*"
+            "arn:aws-us-gov:s3:::${s3name}",
+            "arn:aws-us-gov:s3:::${s3name}/*"
          ]
       },
       {
