@@ -114,27 +114,23 @@
     chmod +x ./ocp-users.sh
     ./ocp-users.sh prepPolicies
     ./ocp-users.sh createUsers
-    cat account_names.txt
-    ```
-14. Using the output from the previous command, identify the new accounts and utilize your preferred method for generating and retrieving associated access ids and keys.
-
-15. Open and update the following file with the key id and key for each respective account.
-
-    ```
-    ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/credentials.var
-    ```
-16. Create kubernetes credential secrets.
-
-    ```
-    source ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/credentials.var | envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/operator-credential-template.yaml > ./4.6.3/config/openshift/operator-credentials.yaml
     ```
 
-17. start up the registry
+14. Use the convenience script to create the aws credentials and kubernetes secrets:
+    ```
+    cd ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam
+    chmod +x ./secret-helper.sh
+    ./secret-helper.sh
+    cp secrets/* ../../config/openshift/
+    cd -
+    ```
+
+15. start up the registry in the background
     ```
     oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key &
     ```
 
-18. Deploy the cluster
+16. Deploy the cluster
 
     ```
     openshift-install create cluster --dir ./4.6.3/config
