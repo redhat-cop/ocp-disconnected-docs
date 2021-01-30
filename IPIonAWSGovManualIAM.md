@@ -45,9 +45,9 @@
 
     ```
     envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers-templ.json > ./4.6.3/ocp-disconnected/containers.json
-    aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers.json 
-    until [[ $resp == "completed" ]]; do sleep 2; echo "Progress: "$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Progess')"\%"; resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status'); done
-    snapid=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq '.ImportSnapshotTasks[].SnapshotTaskDetail.SnapshotId')
+    taskid=$(aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container file://4.6.3/ocp-disconnected/containers.json | jq -r '.ImportTaskId')
+    until [[ $resp == "completed" ]]; do sleep 2; echo "Snapshot progress: "$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq --arg task "$taskid" -r '.ImportSnapshotTasks[] | select(.ImportTaskId==$task) | .SnapshotTaskDetail.Progress')"%"; resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq --arg task "$taskid" -r '.ImportSnapshotTasks[] | select(.ImportTaskId==$task) | .SnapshotTaskDetail.Status'); done
+    snapid=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq --arg task "$taskid" '.ImportSnapshotTasks[] | select(.ImportTaskId==$task) | .SnapshotTaskDetail.SnapshotId')
     aws ec2 register-image \
       --region ${awsreg} \
       --architecture x86_64 \
@@ -131,7 +131,7 @@
 
 17. start up the registry
     ```
-    oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key
+    oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key &
     ```
 
 18. Deploy the cluster

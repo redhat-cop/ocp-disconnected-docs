@@ -114,13 +114,10 @@ function prepPolicies() {
 
   for u in $(cat account_names.txt)
   do
-    f=$(grep -ls $u --exclude="account_names.txt" *) # get filename to edit
-    on=$(jq -r '.UserName' $f) # get original account name
-    sed -i "s/$on/$u/g" $f # edit account name
+    f=$(grep -ls $u --exclude="account_names.txt" *policy.json) # get filename to edit
     na=$(aws sts get-caller-identity | jq -r '.Arn' | grep -oP '.*?/')$u
     oa=$(grep -Po 'arn.*(?<!")' $f)
     sed -i "s~$oa~$na~" $f
-    jq '.PolicyDocument' $f > $u-policy.json
   done
 
 }
@@ -129,7 +126,7 @@ function createUsers() {
 
   for u in $(cat account_names.txt)
   do
-    f=$(grep -ls $u --exclude="account_names.txt" *)
+    f=$(grep -ls $u --exclude="account_names.txt" *policy.json)
     ua=$(__createUser $u)
     pa=$(__createPolicy $u-policy $f)
     __attachPolicy $u $pa
