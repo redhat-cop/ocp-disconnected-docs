@@ -19,9 +19,9 @@
 2. Transfer bundle from internet connected machine to disconnected vpc host.
 
 3. Extract bundle on disconnected vpc host.
-
-    ` tar -xzxf openshift-4-6-3.tar.gz `
-
+    ```    
+    tar -xzxf openshift-4-6-3.tar.gz
+    ```
 
 4. Create S3 Bucket and attach policies.
 
@@ -98,16 +98,21 @@
     ```
     Don't forget to save and close the file!
 
-11. Create manifests from install config.
+11. Make a backup of the final config:
+    ```
+    cp -R ./4.6.3/config/ ./4.6.3/config.bak
+    ```
+
+12. Create manifests from install config.
     ```
     openshift-install create manifests --dir ./4.6.3/config
     ```
 
-12. Delete the installer generated secret
+13. Delete the installer generated secret
     ```
     rm ./4.6.3/config/openshift/99_cloud-creds-secret.yaml 
     ```
-13. create iam users and Policies
+14. create iam users and Policies
 
     ```
     cd ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam
@@ -116,7 +121,7 @@
     ./ocp-users.sh createUsers
     ```
 
-14. Use the convenience script to create the aws credentials and kubernetes secrets:
+15. Use the convenience script to create the aws credentials and kubernetes secrets:
     ```
     cd ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam
     chmod +x ./secret-helper.sh
@@ -125,12 +130,12 @@
     cd -
     ```
 
-15. start up the registry in the background
+16. start up the registry in the background
     ```
     oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key &
     ```
 
-16. Deploy the cluster
+17. Deploy the cluster
 
     ```
     openshift-install create cluster --dir ./4.6.3/config
