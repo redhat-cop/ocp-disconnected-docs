@@ -21,7 +21,7 @@
 
 3. Extract bundle on disconnected vpc host.
     ```    
-    tar -xzxf openshift-4-6-3.tar.gz
+    tar -xzvf openshift-4-6-3.tar.gz
     ```
 
 4. Create S3 Bucket and attach policies.
