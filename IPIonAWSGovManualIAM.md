@@ -1,4 +1,5 @@
-1. Download and compress bundle on internet connected machine.
+1. Download and compress the bundle on internet connected machine using the OpenShift4-mirror companion utility found [here](https://github.com/RedHatGov/openshift4-mirror)
+   
    Prereqs:
    This guide 
    You will first need to retrieve a pull secret and enter it into the literals of the value for `--pull-secret` in the command below. Pull secrets can be obtained from https://cloud.redhat.com/openshift/install/aws/installer-provisioned
