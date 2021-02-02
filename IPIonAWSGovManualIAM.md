@@ -160,3 +160,35 @@ This guide will assume that the user has valid accounts and subscriptions to bot
     ```
     openshift-install create cluster --dir ./4.6.3/config
     ```
+#
+### Cluster Access
+
+You can now access the cluster via CLI with oc or the web console with a web browser.
+
+18. Locate the OpenShift access information provided by the final installer output.
+
+    Example:
+    ```
+    INFO Waiting up to 10m0s for the openshift-console route to be created... 
+    INFO Install complete!                            
+    INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/ec2-user/data/vid-pres/4.6.3/config/auth/kubeconfig' 
+    INFO Access the OpenShift web-console here: https://console-openshift-console.apps.test-cluster.testocp1.net 
+    INFO Login to the console with user: "kubeadmin", and password: "z9yDP-2M6DS-oE9Im-Dcdzk" 
+    INFO Time elapsed: 48m34s    
+    ```
+
+19. Set the default kube context used by oc and kubectl:  
+
+    Example:
+    ```
+    export KUBECONFIG=/home/ec2-user/data/vid-pres/4.6.3/config/auth/kubeconfig
+    ```
+20. Access the web console:
+
+    URL Example:
+    `https://console-openshift-console.apps.test-cluster.testocp1.net`
+
+    Credentials Example:  
+    ```
+    INFO Login to the console with user: "kubeadmin", and password: "z9yDP-2M6DS-oE9Im-Dcdzk
+    ```
