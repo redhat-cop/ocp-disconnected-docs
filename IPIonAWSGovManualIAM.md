@@ -1,8 +1,28 @@
-1. Download and compress the bundle on internet connected machine using the OpenShift4-mirror companion utility found [here](https://github.com/RedHatGov/openshift4-mirror)
+# Installing OpenShift in Disconnected AWS GovCloud using IPI
+
+
+## Overview
+
+This guide is intended to demonstrate how to perform the OpenShift installation using the IPI method on AWS GovCloud. In addition, the guide will walk through performing this installation on an existing disconnected network. In other words the network does not allow access to and from the internet.
+
+## YouTube Video
+
+A video that walks through this guide is available here: https://youtu.be/bHmcWHF-sEA
+
+## AWS Configuration Requirements for Demo
+
+In this guide, we will install OpenShift onto an existing AWS GovCloud VPC. This VPC will contain three private subnets that have no connectivity to the internet, as well as a public subnet that will facilitate our access to the private subnets from the internet (bastion). We still need to allow access to the AWS APIs from the private subnets. For this demo, that AWS API communication is facilitated by a squid proxy. Without that access, we will not be able to install a cloud aware OpenShift cluster. The VPC with squid proxy used in this demo can be found [**here**](https://github.com/dmc5179/openshift4-disconnected/blob/master/cloudformation/disconnected_vpc/disconnected_vpc.yaml)
+
+
+This guide will assume that the user has valid accounts and subscriptions to both Red Hat OpenShift and AWS GovCloud.
+#
+## Installing OpenShift 
+
+### Create OpenShift Installation Bundle
+1. Download and compress the bundle on internet connected machine using the OpenShift4-mirror companion utility found [**here**](https://github.com/RedHatGov/openshift4-mirror)
    
-   Prereqs:
-   This guide 
-   You will first need to retrieve a pull secret and enter it into the literals of the value for `--pull-secret` in the command below. Pull secrets can be obtained from https://cloud.redhat.com/openshift/install/aws/installer-provisioned
+
+   You will first need to retrieve an OpenShift pull secret. Once you have retrieved that, enter it into the literals of the value for `--pull-secret` in the command below. Pull secrets can be obtained from https://cloud.redhat.com/openshift/install/aws/installer-provisioned
 
     ```
     podman run -it --security-opt label=disable -v ./:/app/bundle quay.io/redhatgov/openshift4_mirror:latest \
@@ -19,6 +39,8 @@
     ```
 2. Transfer bundle from internet connected machine to disconnected vpc host.
 
+#
+### Prepare and Deploy
 3. Extract bundle on disconnected vpc host.
     ```    
     tar -xzvf openshift-4-6-3.tar.gz
@@ -62,8 +84,6 @@
 
 7. Record the AMI ID from the output of the above command.
 
-
-
 8. Create registry cert on disconnected vpc host
     ```
     export SUBJ="/C=US/ST=Virginia/O=Red Hat/CN=${HOSTNAME}"
@@ -72,7 +92,7 @@
 
 9. Make a copy of the install config
     ```
-    mkdir ./4.6.3//config
+    mkdir ./4.6.3/config
     cp ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/install-config-template.yaml ./4.6.3/config/install-config.yaml
     ```
 10. Edit install config
@@ -124,7 +144,6 @@
 
 15. Use the convenience script to create the aws credentials and kubernetes secrets:
     ```
-    cd ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam
     chmod +x ./secret-helper.sh
     ./secret-helper.sh
     cp secrets/* ../../config/openshift/
