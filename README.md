@@ -199,6 +199,10 @@ In this section, we will walk you through installations using each of the method
 
 [OpenShift IPI on MAG with Manual IAM](IPIonMAGInstallManualIAM.md)
 
+### Installing OpenShift in Disconnected AWS GovCloud using IPI
+
+[OpenShift IPI on AWS GovCloud with Manual IAM](IPIonAWSGovManualIAM.md)
+
 ## Installing OpenShift in Disconnected AWS GovCloud using Sparta
 
 [Sparta Install Docs](SpartaInstall.md)
