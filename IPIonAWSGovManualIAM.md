@@ -15,8 +15,6 @@ A video that walks through this guide is available here: https://youtu.be/bHmcWH
   <figcaption>Demo VPC Drawing</figcaption>
 </figure>
 
-In this guide, we will install OpenShift onto an existing AWS GovCloud VPC. This VPC will contain three private subnets that have no connectivity to the internet, as well as a public subnet that will facilitate our access to the private subnets from the internet (bastion). We still need to allow access to the AWS APIs from the private subnets. For this demo, that AWS API communication is facilitated by a squid proxy. Without that access, we will not be able to install a cloud aware OpenShift cluster. The VPC with squid proxy used in this demo can be found [**here**](https://github.com/dmc5179/openshift4-disconnected/blob/master/cloudformation/disconnected_vpc/disconnected_vpc.yaml).
-
 In this guide, we will install OpenShift onto an existing AWS GovCloud VPC. This VPC will contain three private subnets that have no connectivity to the internet, as well as a public subnet that will facilitate our access to the private subnets from the internet (bastion). We still need to allow access to the AWS APIs from the private subnets. For this demo, that AWS API communication is facilitated by a squid proxy. Without that access, we will not be able to install a cloud aware OpenShift cluster. 
 
 A Cloud Formation template that details the VPC with squid proxy used in this demo can be found [**here**](https://github.com/dmc5179/openshift4-disconnected/blob/master/cloudformation/disconnected_vpc/disconnected_vpc.yaml). This demo assumes these are provided, but this template may be leveraged to create these resources if desired.
@@ -27,7 +25,7 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 ## Installing OpenShift 
 
 ### Create OpenShift Installation Bundle
-1. Download and compress the bundle on internet connected machine using the OpenShift4-mirror companion utility found [**here**](https://github.com/RedHatGov/openshift4-mirror)
+1. Download and compress the bundle on internet connected machine using the OpenShift4-mirror companion utility found [**here**](https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror)
    
 
    You will first need to retrieve an OpenShift pull secret. Once you have retrieved that, enter it into the literals of the value for `--pull-secret` in the command below. Pull secrets can be obtained from https://cloud.redhat.com/openshift/install/aws/installer-provisioned
@@ -40,7 +38,7 @@ This guide will assume that the user has valid accounts and subscriptions to bot
       --skip-existing \
       --skip-catalogs \
       --pull-secret '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...' && \
-    git clone https://github.com/RedHatGov/ocp-disconnected-docs.git ./4.6.3/ocp-disconnected && \
+    git clone https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/documentation.git ./4.6.3/ocp-disconnected && \
     rm -f ./4.6.3/rhcos/rhcos-aws.x86_64.vmdk.gz && \
     curl https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/4.6.1/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz -o ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz && \
     tar -zcvf openshift-4-6-3.tar.gz 4.6.3
