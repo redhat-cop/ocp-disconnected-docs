@@ -36,15 +36,13 @@ This guide will assume that the user has valid accounts and subscriptions to bot
     ```
     podman run -it --security-opt label=disable -v ./:/app/bundle quay.io/redhatgov/openshift4_mirror:latest \
       ./openshift_mirror bundle \
-      --openshift-version 4.6.3 \ggggggggg
+      --openshift-version 4.7.0 \
       --platform aws \
       --skip-existing \
       --skip-catalogs \
       --pull-secret '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...' && \
-    git clone https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/documentation.git ./4.6.3/ocp-disconnected && \
-    rm -f ./4.6.3/rhcos/rhcos-aws.x86_64.vmdk.gz && \
-    curl https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/4.6.1/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz -o ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz && \
-    tar -zcvf openshift-4-6-3.tar.gz 4.6.3
+    git clone https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/documentation.git ./4.7.0/ocp-disconnected && \
+    tar -zcvf openshift-4-7-0.tar.gz 4.7.0
     ```
 2. Transfer bundle from internet connected machine to disconnected vpc host.
 
@@ -52,7 +50,7 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 ### Prepare and Deploy
 3. Extract bundle on disconnected vpc host.
     ```    
-    tar -xzvf openshift-4-6-3.tar.gz
+    tar -xzvf openshift-4-7-0.tar.gz
     ```
 
 4. Create S3 Bucket and attach policies.
@@ -61,31 +59,31 @@ This guide will assume that the user has valid accounts and subscriptions to bot
     export awsreg=$(aws configure get region)
     export s3name=$(date +%s"-rhcos")
     aws s3api create-bucket --bucket ${s3name} --region ${awsreg} --create-bucket-configuration LocationConstraint=${awsreg}
-    aws iam create-role --role-name vmimport --assume-role-policy-document "file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/trust-policy.json"
-    envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy-templ.json > ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json
-    aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document "file://4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json"
+    aws iam create-role --role-name vmimport --assume-role-policy-document "file://4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam/trust-policy.json"
+    envsubst < ./4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy-templ.json > ./4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json
+    aws iam put-role-policy --role-name vmimport --policy-name vmimport --policy-document "file://4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam/role-policy.json"
     ```
 
 5. Upload RHCOS Image to S3
 
     ```
-    gzip -d ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk.gz
-    aws s3 mv ./4.6.3/rhcos/rhcos-4.6.1-x86_64-aws.x86_64.vmdk s3://${s3name}
+    gzip -d ./4.7.0/rhcos/rhcos-47.83.202102090044-0-aws.x86_64.vmdk.gz
+    aws s3 mv ./4.7.0/rhcos/rhcos-47.83.202102090044-0-aws.x86_64.vmdk s3://${s3name}
     ```
 
 6. Create AMI
 
     ```
-    envsubst < ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/containers-templ.json > ./4.6.3/ocp-disconnected/containers.json
-    taskid=$(aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container file://4.6.3/ocp-disconnected/containers.json | jq -r '.ImportTaskId')
+    envsubst < ./4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam/containers-templ.json > ./4.7.0/ocp-disconnected/containers.json
+    taskid=$(aws ec2 import-snapshot --region ${awsreg} --description "rhcos-snapshot" --disk-container file://4.7.0/ocp-disconnected/containers.json | jq -r '.ImportTaskId')
     until [[ $resp == "completed" ]]; do sleep 2; echo "Snapshot progress: "$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq --arg task "$taskid" -r '.ImportSnapshotTasks[] | select(.ImportTaskId==$task) | .SnapshotTaskDetail.Progress')"%"; resp=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq --arg task "$taskid" -r '.ImportSnapshotTasks[] | select(.ImportTaskId==$task) | .SnapshotTaskDetail.Status'); done
     snapid=$(aws ec2 describe-import-snapshot-tasks --region ${awsreg} | jq --arg task "$taskid" '.ImportSnapshotTasks[] | select(.ImportTaskId==$task) | .SnapshotTaskDetail.SnapshotId')
     aws ec2 register-image \
       --region ${awsreg} \
       --architecture x86_64 \
-      --description "rhcos-4.6.1-x86_64-aws.x86_64" \
+      --description "rhcos-47.83.202102090044-0-aws.x86_64" \
       --ena-support \
-      --name "rhcos-4.6.1-x86_64-aws.x86_64" \
+      --name "rhcos-47.83.202102090044-0-aws.x86_64" \
       --virtualization-type hvm \
       --root-device-name '/dev/xvda' \
       --block-device-mappings 'DeviceName=/dev/xvda,Ebs={DeleteOnTermination=true,SnapshotId='${snapid}'}' 
@@ -101,11 +99,11 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 
 9. Make a copy of the install config
     ```
-    mkdir ./4.6.3/config
-    cp ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam/install-config-template.yaml ./4.6.3/config/install-config.yaml
+    mkdir ./4.7.0/config
+    cp ./4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam/install-config-template.yaml ./4.7.0/config/install-config.yaml
     ```
 10. Edit install config
-    For this step, Open `./4.6.3/config/install-config.yaml` and edit the following fields:
+    For this step, Open `./4.7.0/config/install-config.yaml` and edit the following fields:
 
     ```
     baseDomain: i.e. example.com
@@ -130,22 +128,22 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 
 11. Make a backup of the final config:
     ```
-    cp -R ./4.6.3/config/ ./4.6.3/config.bak
+    cp -R ./4.7.0/config/ ./4.7.0/config.bak
     ```
 
 12. Create manifests from install config.
     ```
-    openshift-install create manifests --dir ./4.6.3/config
+    openshift-install create manifests --dir ./4.7.0/config
     ```
 
 13. Delete the installer generated secret
     ```
-    rm ./4.6.3/config/openshift/99_cloud-creds-secret.yaml 
+    rm ./4.7.0/config/openshift/99_cloud-creds-secret.yaml 
     ```
 14. create iam users and Policies
 
     ```
-    cd ./4.6.3/ocp-disconnected/aws-gov-ipi-dis-maniam
+    cd ./4.7.0/ocp-disconnected/aws-gov-ipi-dis-maniam
     chmod +x ./ocp-users.sh
     ./ocp-users.sh prepPolicies
     ./ocp-users.sh createUsers
@@ -161,13 +159,13 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 
 16. start up the registry in the background
     ```
-    oc image serve --dir=./4.6.3/release/ --tls-crt=./registry.crt --tls-key=./registry.key &
+    oc image serve --dir=./4.7.0/release/ --tls-crt=./registry.crt --tls-key=./registry.key &
     ```
 
 17. Deploy the cluster
 
     ```
-    openshift-install create cluster --dir ./4.6.3/config
+    openshift-install create cluster --dir ./4.7.0/config
     ```
 #
 ### Cluster Access
@@ -180,7 +178,7 @@ You can now access the cluster via CLI with oc or the web console with a web bro
     ```
     INFO Waiting up to 10m0s for the openshift-console route to be created... 
     INFO Install complete!                            
-    INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/ec2-user/data/vid-pres/4.6.3/config/auth/kubeconfig' 
+    INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/ec2-user/data/vid-pres/4.7.0/config/auth/kubeconfig' 
     INFO Access the OpenShift web-console here: https://console-openshift-console.apps.test-cluster.testocp1.net 
     INFO Login to the console with user: "kubeadmin", and password: "z9yDP-2M6DS-oE9Im-Dcdzk" 
     INFO Time elapsed: 48m34s    
@@ -190,7 +188,7 @@ You can now access the cluster via CLI with oc or the web console with a web bro
 
     Example:
     ```
-    export KUBECONFIG=/home/ec2-user/data/vid-pres/4.6.3/config/auth/kubeconfig
+    export KUBECONFIG=/home/ec2-user/data/vid-pres/4.7.0/config/auth/kubeconfig
     ```
 20. Access the web console:
 
