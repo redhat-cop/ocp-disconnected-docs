@@ -1,8 +1,8 @@
 {
-   "Description": "rhcos-4.6.1-x86_64-aws.x86_64",
+   "Description": "rhcos-47.83.202102090044-0-aws.x86_64",
    "Format": "vmdk",
    "UserBucket": {
       "S3Bucket": "${s3name}",
-      "S3Key": "rhcos-4.6.1-x86_64-aws.x86_64.vmdk"
+      "S3Key": "rhcos-47.83.202102090044-0-aws.x86_64.vmdk"
    }
 }
