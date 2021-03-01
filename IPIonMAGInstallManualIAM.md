@@ -230,6 +230,7 @@ sudo lvresize -r -L +125G /dev/mapper/rootvg-homelv
 
 In order to capture all the artifacts needed to install openshift, this guide will use a tool called openshift4_mirror. Please see [https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror](https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror) for more information about this tool. In addition, the pull-secret will need to be obtained from [https://cloud.redhat.com/openshift/install/pull-secret](https://cloud.redhat.com/openshift/install/pull-secret).  If the operator catalogs are also needed, ensure that there is enough disk space and remove the --skip-catalogs flag.
 
+The following steps require OpenShift 4.6 and above. Replace <OCP_VERSION> with the specific target install version, such as 4.7.0.
 
 ```
 #From Bastion
@@ -240,14 +241,14 @@ mkdir mirror && cd mirror
 podman run -it -v ./:/app/bundle:Z quay.io/redhatgov/openshift4_mirror:latest
 
 ./openshift_mirror bundle \
- 	--openshift-version 4.6.3 \
+ 	--openshift-version <OCP_VERSION> \
  	--platform azure \
  	--skip-existing --skip-catalogs \
 	--pull-secret '<PULL_SECRET>'
 
 #exit by using ctrl-d
 
-tar czf OpenShiftBundle-4.6.3.tgz 4.6.3/
+tar czf OpenShiftBundle-<OCP_VERSION>.tgz <OCP_VERSION>/
 
 ```
 
@@ -257,7 +258,7 @@ tar czf OpenShiftBundle-4.6.3.tgz 4.6.3/
 
 ```
 #From Bastion
-scp -i ~/.ssh/azure-key.pem OpenShiftBundle-4.6.3.tgz registry.<DOMAIN>:~
+scp -i ~/.ssh/azure-key.pem OpenShiftBundle-<OCP_VERSION>.tgz registry.<DOMAIN>:~
 
 ssh -i ~/.ssh/azure-key.pem registry.<DOMAIN>:~
 ```
@@ -270,9 +271,9 @@ For the purpose of this demo, we will use a temporary registry to serve the Open
 ```
 #From Registry
 
-tar xzf OpenShiftBundle-4.6.3.tgz
+tar xzf OpenShiftBundle-<OCP_VERSION>.tgz
 
-cd 4.6.3
+cd <OCP_VERSION>
 
 openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/CN=registry.<DOMAIN>/O=Red Hat/L=Default City/ST=TX/C=US"
 
@@ -378,7 +379,7 @@ The first time the openshift-install binary is run, it will prompt for the azure
 ```
 #From Registry
 
-cd ~/4.6.3
+cd ~/<OCP_VERSION>
 
 bin/openshift-install create manifests --dir=/home/azureuser/ocp_install/ --log-level=debug
 ```
