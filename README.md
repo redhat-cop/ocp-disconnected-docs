@@ -1,12 +1,12 @@
 ## What is OpenShift?
 
-Red Hat OpenShift is a leading enterprise Kubernetes platform, purpose-built for innovation. The latest release, version 4.6, comes with a number of enhancements focused on enabling our government customers to accelerate and expand their adoption of containers and DevSecOps, such as a comprehensive approach to FIPS, expanded support for government clouds, an automated approach to compliance via the Compliance Operator, and others. 
+Red Hat OpenShift is a leading enterprise Kubernetes platform, purpose-built for innovation. Beginning with release version 4.6, OpenShift now comes with a number of enhancements focused on enabling our government customers to accelerate and expand their adoption of containers and DevSecOps, such as a comprehensive approach to FIPS, expanded support for government clouds, an automated approach to compliance via the Compliance Operator, and others. 
 
 Red Hat OpenShift is a certified Kubernetes distribution, which provides consistency via the Kubernetes API, timely updates, and confirmability to ensure interoperability. Red Hat is a leading contributor to Kubernetes and other projects in this ecosystem including Linux, Prometheus, Jaeger, CNI, Envoy, Istio, etc. At Red Hat we use a 100% open source development model to deliver enterprise products.  No fork, no rebase, no proprietary extensions.
 
 Red Hat emphasizes the enterprise supportability of open source software, which is particularly important with the DoD mission. Not only do they build an ecosystem of supported partners and vendors. We recognize that keeping up with the frequent upstream releases can be challenging and we’re investing in automated capabilities like the operator framework and over-the-air updates to make it easier to keep up to date with the latest innovations coming out of the communities and to deploy containers at scale.
 
-For more information on OpenShift 4.6, please refer to [this blog](https://www.openshift.com/blog/red-hat-openshift-4.6-the-kubernetes-platform-for-government).
+For more information  please refer to [this blog](https://www.openshift.com/blog/red-hat-openshift-4.6-the-kubernetes-platform-for-government).
 
 
 ## How do you install OpenShift?
