@@ -157,20 +157,20 @@ ssh-keygen -y -f \
 
 7. Upload RHCOS AMI to AWS when in GovCloud
 
-8. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
+8. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.7/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.7/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
 
 Here is a link to the required VMDK for the RHCOS AMI upload:
 https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/rhcos-aws.x86_64.vmdk.gz
 
 9. If in the commercial cloud please find the ami for your region from the following link:
-https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
+https://docs.openshift.com/container-platform/4.7/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
 
 
 ### Configure the Sparta DevKit VPC
-1. Export the version of OpenShift to be deployed as an environment variable. The value 4.6.1 is the only supported value for this set of directions.
+1. Export the version of OpenShift to be deployed as an environment variable. The value 4.7.0 is the only supported value for this set of directions.
 
 ```
-export OCP_VERSION=4.6.1
+export OCP_VERSION=4.7.0
 ```
 
 2. Clone the “devkit-vpc” repo.
@@ -229,7 +229,7 @@ vi variables.tf
   <tr>
    <td>rhcos_ami
    </td>
-   <td>ami-009cbe327d180d666
+   <td>ami-0d5f9982f029fbc14
    </td>
    <td>The RH CoreOS AMI 
    </td>
@@ -317,7 +317,7 @@ podman run -it --rm \
     --volume ~/bundle:/root/bundle:z \
     docker.io/cloudctl/koffer:$OCP_VERSION \
     bundle \
-    --config https://raw.githubusercontent.com/sl-commits/sparta463/7c45392e3c0456b9e1282ef393899df8c77e39a7/sparta.yml
+    --config https://raw.githubusercontent.com/RedHatGov/ocp-disconnected-docs/main/sparta.yml
 ```
 
 
@@ -338,7 +338,7 @@ Example output, the version below would match the env var `OCP_VERSION` value:
 
 
 ```
-7.4G	/home/ec2-user/bundle/koffer-bundle.openshift-4.6.1.tar
+7.4G	/home/ec2-user/bundle/koffer-bundle.openshift-4.7.0.tar
 ```
 
 
@@ -367,7 +367,7 @@ ssh -i $SPARTA_PRIVATE_KEY ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP
 3. Export the version of OpenShift to be deployed as an environment variable, ensure this is the same value as was set on the ICTL machine.
 
 ```
-export OCP_VERSION=4.6.1
+export OCP_VERSION=4.7.0
 ```
 
 
