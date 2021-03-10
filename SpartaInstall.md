@@ -311,13 +311,15 @@ mkdir -p ~/bundle
 
 2. Build OpenShift Infrastructure, Operators, and App Bundles
 
+Note you may need to adjust the config url based on your circumstances.
+
 ```
 podman run -it --rm \
     --pull always \
     --volume ~/bundle:/root/bundle:z \
-    docker.io/cloudctl/koffer:$OCP_VERSION \
+    quay.io/cloudctl/koffer:v00.21.0305 \
     bundle \
-    --config https://raw.githubusercontent.com/RedHatGov/ocp-disconnected-docs/main/sparta.yml
+    --config https://raw.githubusercontent.com/RedHatGov/ocp-disconnected-docs/main/sparta/config.yml
 ```
 
 

@@ -1,7 +1,0 @@
-koffer:
-  silent: false
-  plugins:
-    openshift:
-      version: 4.7.0
-      service: github.com
-      organization: codesparta

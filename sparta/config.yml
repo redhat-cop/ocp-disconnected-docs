@@ -1,0 +1,25 @@
+# podman run -it --rm --pull always --volume ${HOME}/bundle:/root/bundle:z quay.io/cloudctl/koffer bundle --config https://codectl.io/docs/config/nightlies/sparta.yml 
+koffer:
+  silent: false
+  plugins:
+    sparta:
+      version: v00.21.0305
+      service: github.com
+      organization: codesparta
+      env:
+        - name: "BUNDLE"
+          value: "true"
+        - name: "MIRROR"
+          value: "true"
+        - name: "PROVIDER"
+          value: "aws"
+        - name: "VERSION"
+          value: "4.7.0"
+        - name: "TPDK_VERSION"
+          value: "master"
+        - name: "SPARTA_VERSION"
+          value: "master"
+        - name: "REDHAT_OPERATORS"
+          value: "null"
+        - name: "RHCOS_AWS"
+          value: "true"
