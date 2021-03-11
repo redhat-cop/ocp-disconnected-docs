@@ -142,12 +142,12 @@ cp /root/certs/lin/* /etc/pki/ca-trust/source/anchors/
 ```
 update-ca-trust extract
 ```
-Unpack the tarball 
+6. Unpack the mirror_bundle tarball 
 ```
 tar xvf mirror_bundle.tar
 ```
 
-6. Unpack the openshift client tarballs
+7. Unpack the openshift client tarballs
 ```
 tar xvf ./openshift-client-linux.tar.gz -C /usr/local/bin/
 ```
@@ -158,7 +158,7 @@ tar xvf ./openshift-install-linux.tar.gz -C /usr/local/bin/
 tar xvf ./opm-linux.tar.gz -C /usr/local/bin
 ```
 
-9. Start | Enable httpd service and copy ova to webroot
+8. Start | Enable httpd service and copy ova to webroot
 ```
 systemctl enable --now httpd
 
@@ -167,17 +167,17 @@ cp /root/rhcos-vmware.x86_64 /var/www/html
 restorecon -FRvv /var/www/html
 ```
 
-10. Create the SSL certificates
+9. Create the SSL certificates
 ```
 openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/CN=registry.<DOMAIN>/O=Red Hat/L=Default City/ST=TX/C=US"
 ```
 
-11. Use `oc image serve` to host the bootstrap registry content
+10. Use `oc image serve` to host the bootstrap registry content
 ```
 oc image serve --tls-crt=/root/domain.crt --tls-key=/root/domain.key --listen=':5000' --dir=/root/data/mirror &
 ```
 
-12. Test to make sure it's working:
+11. Test to make sure it's working:
 **Note:** From the disconnected utility node:
 ```
 ss -plunt | grep 5000
@@ -187,7 +187,7 @@ Expected Output:
 ```
 tcp   LISTEN 0      128                              0.0.0.0:5000       0.0.0.0:*                     users:(("conmon",pid=13764,fd=5))
 ```
-Create an SSH Key pair
+12. Create an SSH Key pair
 ```
 ssh-keygen
 ```
