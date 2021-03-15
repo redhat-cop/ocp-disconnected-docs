@@ -157,20 +157,20 @@ ssh-keygen -y -f \
 
 7. Upload RHCOS AMI to AWS when in GovCloud
 
-8. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
+8. Use the following link for instructions on how to upload a RHCOS image as an AMI: ([https://docs.openshift.com/container-platform/4.7/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region](https://docs.openshift.com/container-platform/4.7/installing/installing_aws/installing-aws-government-region.html#installation-aws-regions-with-no-ami_installing-aws-government-region))
 
 Here is a link to the required VMDK for the RHCOS AMI upload:
 https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/rhcos-aws.x86_64.vmdk.gz
 
 9. If in the commercial cloud please find the ami for your region from the following link:
-https://docs.openshift.com/container-platform/4.6/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
+https://docs.openshift.com/container-platform/4.7/installing/installing_aws/installing-aws-user-infra.html#installation-aws-user-infra-rhcos-ami_installing-aws-user-infra
 
 
 ### Configure the Sparta DevKit VPC
-1. Export the version of OpenShift to be deployed as an environment variable. The value 4.6.1 is the only supported value for this set of directions.
+1. Export the version of OpenShift to be deployed as an environment variable. The value 4.7.0 is the only supported value for this set of directions.
 
 ```
-export OCP_VERSION=4.6.1
+export OCP_VERSION=4.7.0
 ```
 
 2. Clone the “devkit-vpc” repo.
@@ -229,7 +229,7 @@ vi variables.tf
   <tr>
    <td>rhcos_ami
    </td>
-   <td>ami-009cbe327d180d666
+   <td>ami-0d5f9982f029fbc14
    </td>
    <td>The RH CoreOS AMI 
    </td>
@@ -311,13 +311,15 @@ mkdir -p ~/bundle
 
 2. Build OpenShift Infrastructure, Operators, and App Bundles
 
+Note you may need to adjust the config url based on your circumstances.
+
 ```
 podman run -it --rm \
     --pull always \
     --volume ~/bundle:/root/bundle:z \
-    docker.io/cloudctl/koffer:$OCP_VERSION \
+    quay.io/cloudctl/koffer:v00.21.0305 \
     bundle \
-    --config https://raw.githubusercontent.com/sl-commits/sparta463/7c45392e3c0456b9e1282ef393899df8c77e39a7/sparta.yml
+    --config https://raw.githubusercontent.com/RedHatGov/ocp-disconnected-docs/main/sparta/config.yml
 ```
 
 
@@ -338,7 +340,7 @@ Example output, the version below would match the env var `OCP_VERSION` value:
 
 
 ```
-7.4G	/home/ec2-user/bundle/koffer-bundle.openshift-4.6.1.tar
+7.4G	/home/ec2-user/bundle/koffer-bundle.openshift-4.7.0.tar
 ```
 
 
@@ -367,7 +369,7 @@ ssh -i $SPARTA_PRIVATE_KEY ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP
 3. Export the version of OpenShift to be deployed as an environment variable, ensure this is the same value as was set on the ICTL machine.
 
 ```
-export OCP_VERSION=4.6.1
+export OCP_VERSION=4.7.0
 ```
 
 
@@ -390,7 +392,7 @@ scp -i ~/.ssh/sparta.pem -r ~/bundle \
 
 ```
 ssh -i ~/.ssh/sparta.pem -t core@$SPARTA_REGISTRY_NODE_PRIVATE_IP \
-  "sudo tar xvf ~/bundle/koffer-bundle.openshift-$OCP_VERSION.tar -C /root"
+  "sudo tar xvf ~/bundle/koffer-bundle.sparta-aws-$OCP_VERSION.tar -C /root"
 ```
 
 
@@ -413,20 +415,26 @@ ssh  -i ~/.ssh/sparta.pem core@$SPARTA_REGISTRY_NODE_PRIVATE_IP
 
 2. Acquire root
 
- 
-
-
 ```
-sudo -i && cd
+sudo -i
 ```
 
-
-
-
-3. Edit answers.sh setting the variables as defined in the table below.
+3. Run init.sh
 
 ```
-vi answer.sh
+cd /root/cloudctl && ./init.sh
+```
+
+4. Exec into Konductor
+
+```
+podman exec -it konductor connect
+```
+
+5. Edit cluster-vars.yml setting the variables as defined in the table below.
+
+```
+vim /root/platform/iac/cluster-vars.yml
 ```
 
 
@@ -434,7 +442,7 @@ vi answer.sh
 <table>
   <tr>
    <td>
-<strong>Variable Name</strong>
+    <strong>Variable Name</strong>
    </td>
    <td><strong>Example</strong>
    </td>
@@ -442,63 +450,7 @@ vi answer.sh
    </td>
   </tr>
   <tr>
-   <td>k9TargetEnvironment
-   </td>
-   <td>govcloud
-   </td>
-   <td>Ignore this, currently not in use
-   </td>
-  </tr>
-  <tr>
-   <td>k9AwsRegion
-   </td>
-   <td>us-east-1
-   </td>
-   <td>Set this to your target AWS region where OpenShift will be deployed
-   </td>
-  </tr>
-  <tr>
-   <td>k9sAwsKeyId
-   </td>
-   <td>AAAAAAAAAAAAAAAAAAAA
-   </td>
-   <td>AWS Key Id for the target environment
-   </td>
-  </tr>
-  <tr>
-   <td>k9AwsKeySecret
-   </td>
-   <td>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-   </td>
-   <td>AWS Key Secret for the target environment
-   </td>
-  </tr>
-  <tr>
-   <td>k9VpcId
-   </td>
-   <td>vpc-XXXXXXXXX
-   </td>
-   <td>The AWS VPC Id for the target environment
-   </td>
-  </tr>
-  <tr>
-   <td>k9RhcosAmi
-   </td>
-   <td>ami-XXXXXXXXX
-   </td>
-   <td>THE Red Hat CoreOS AMI Id for the target environment
-   </td>
-  </tr>
-  <tr>
-   <td>k9NameDomain
-   </td>
-   <td>spartadomain.io
-   </td>
-   <td>The domain name for the cluster
-   </td>
-  </tr>
-  <tr>
-   <td>k9NameVpc
+   <td>vpc_name
    </td>
    <td>sparta
    </td>
@@ -506,44 +458,76 @@ vi answer.sh
    </td>
   </tr>
   <tr>
-   <td>k9NameCluster
+   <td>name_domain
    </td>
-   <td>
+   <td>spartadomain.io
    </td>
-   <td>The name used to create the AWS resources associated with the cluster. Default setting will use the k9NameVpc value.
+   <td>The domain name for the cluster
    </td>
   </tr>
   <tr>
-   <td>k9SubnetList
+   <td>vpc_id
    </td>
-   <td>'["subnet-XXXXXXXXX", "subnet-XXXXXXXXX", "subnet-XXXXXXXXX"]'
+   <td>vpc-XXXXXXXXX
+   </td>
+   <td>The AWS VPC Id for the target environment
+   </td>
+  </tr>
+  <tr>
+   <td>aws_region
+   </td>
+   <td>us-east-1
+   </td>
+   <td>Set this to your target AWS region where OpenShift will be deployed
+   </td>
+  </tr>
+  <tr>
+   <td>aws_access_key_id
+   </td>
+   <td>AAAAAAAAAAAAAAAAAAAA
+   </td>
+   <td>AWS Key Id for the target environment
+   </td>
+  </tr>
+  <tr>
+   <td>aws_secret_access_key
+   </td>
+   <td>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+   </td>
+   <td>AWS Key Secret for the target environment
+   </td>
+  </tr>
+  <tr>
+   <td>rhcos_ami
+   </td>
+   <td>ami-XXXXXXXXX
+   </td>
+   <td>THE Red Hat CoreOS AMI Id for the target environment
+   </td>
+  </tr>
+  <tr>
+   <td>subnet_list
+   </td>
+   <td>
+   - subnet-XXXXXXXXX
+   - subnet-XXXXXXXXX
+   - subnet-XXXXXXXXX
    </td>
    <td>The list of AWS Subnet Ids associated with the target VPC
    </td>
   </tr>
 </table>
+<br/>
+<br/>
 
 
-
-
-4. Run Konductor
-
-```
-./konductor.sh
-```
-
-
-5. Exec into Konductor
+6. Deploy Cluster
 
 ```
-podman exec -it konductor connect
+cd /root/platform/iac/sparta && ./site.yml
 ```
 
-
-6. Run the following commands, it ultimately runs a watch command. At the top of the output it will inform you when to move on to the next step;this may take 30-60 minutes.
-
- 
-
+7. Run the following commands, it ultimately runs a watch command. At the top of the output it will inform you when to move on to the next step;this may take 30-60 minutes.
 
 ```
 function watch_command() {
@@ -570,7 +554,7 @@ watch -d -n 5 -c watch_command
 ```
 
 
-7. Print & Load Apps ELB DNS CNAME Forwarder into apps route53 entry. To retrieve the wildcard DNS name run the following.
+8. Print & Load Apps ELB DNS CNAME Forwarder into apps route53 entry. To retrieve the wildcard DNS name run the following.
 
 ```
 # prints the target value for the CNAME
@@ -593,7 +577,7 @@ watch -d -n 5 oc get co
 ```
 
 
-1. Run the following command to get the password for the kubeadmin user:
+9. Run the following command to get the password for the kubeadmin user:
 
 
 ```
@@ -601,15 +585,15 @@ cat /root/platform/secrets/cluster/auth/kubeadmin-password
 ```
 
 
-1. To get the url to the console:
+10. To get the url to the console:
 
 
 ```
-oc get route -n openshift-console console | awk '/console/{print $2}' or oc whoami --show-console
+oc whoami --show-console
 ```
 
 
-1. In order to access the web console, we will need to connect to the private VPC. One way to do this is to simply use sshuttle ([https://sshuttle.readthedocs.io/en/stable/overview.html](https://sshuttle.readthedocs.io/en/stable/overview.html)) using the following commands.
+11. In order to access the web console, we will need to connect to the private VPC. One way to do this is to simply use sshuttle ([https://sshuttle.readthedocs.io/en/stable/overview.html](https://sshuttle.readthedocs.io/en/stable/overview.html)) using the following commands.
 
 From the ICLT host, run the following command to install Python 3.6 on the Sparta Bastion Node to support using sshuttle
 
@@ -619,7 +603,7 @@ ssh -i $SPARTA_PRIVATE_KEY -t ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP "sudo dnf 
 ```
 
 
-1. From the ICLT launch sshuttle to connect to the VPC
+12. From the ICLT launch sshuttle to connect to the VPC
 
 
 ```
@@ -628,7 +612,7 @@ sshuttle  --dns -r ec2-user@$SPARTA_BASTION_NODE_PUBLIC_IP 0/0 \
 ```
 
 
-1. Now you can connect to the console using your browser of choice.
+13. Now you can connect to the console using your browser of choice.
 
 
 ### Cluster & VPC Teardown Page Section
