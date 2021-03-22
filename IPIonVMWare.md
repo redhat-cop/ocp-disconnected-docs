@@ -1,26 +1,42 @@
-# Installing OpenShift in vmWare Disconnected using IPI
+# Installing OpenShift in VMware Disconnected using IPI
 
-### Overview
+## Overview
 This guide is intended to demonstrate how to perform the OpenShift installation using the installer provisioned infrastructure (IPI) method on vmWare. Additionally, this guide will provide details on properly configuring vmWare for a successful deployment.
 
-### Environment Overview
-This vmware environment used is has the following components:
+## Environment Overview
+In this guide, we will install OpenShift onto an existing vmware environment. This vmware environment
+has a portgroup for public internet access and a portgroup for internal access already created. There
+is also a pre-existing rhel8 template provisioned which has the following characteristics:
+```
+2 vcpu
+2 Gb Memory
+50 Gb disk
+vmNetwork (internal-only network)
+```
+The VMware environment is a three-node cluster with the below software installed and configured:
 - vCenter 7.0
 - vSphere 7.0
 - vSAN 
+- A single datacenter (name: vdc)
+- A single cluster (name: vcluster)
 - A single portgroup for Public network access
 - A single portgroup for internal network access
-- RHEL 8.2 Template 
+- RHEL 8.x Template (name: RHEL8-TEMPLATE)
 
-### Prerequisites
+## Prerequisites
 - at least one internet facing machine
 - dns server with zones and subdomains
 - dns entries (A Records) for registry, api and wildcard apps `*.apps`
 - dhcp service
 
-### vmWare Role Permissions
+## vmWare Role Permissions
+This guide does not use the full administrator privileges to complete the installation. Follow the below link for the permissions required in vcenter to complete the installation:
+
 [vmware permissions](https://docs.openshift.com/container-platform/4.6/installing/installing_vsphere/installing-vsphere-installer-provisioned-customizations.html#installation-vsphere-installer-infra-requirements_installing-vsphere-installer-provisioned-customizations)
 
+#From vcenter user interface:
+If a user role and permissions do not exist, follow these steps to create a new role, an user in the
+local SSO domain, and then assign the role to the user.
 1. Create a new role:
 - Click on menu, then click administration
 - Click on `Roles` under `Access Control`
@@ -42,10 +58,10 @@ This vmware environment used is has the following components:
 - Assign the role previously created
 - Click `Propogate to children`
 
-### Preparing the mirror node
-
+## Preparing the mirror node
 <p class="callout info"> A virtual machine is deployed from the RHEL8 template and is configured with both the public and internal portgroups.</p>
 
+#From connected bastion node
 1. Download the quay pull secret from [cloud.redhat.com](https://cloud.redhat.com)
 
 2. Download the OpenShift commadline utilities and OVA files
@@ -110,6 +126,8 @@ scp mirror_bundle.tar <ip_of_disconnected_node>:~
 
 <p class="callout info"> A virtual machine is deployed from the RHEL8 template and is configured with only the internal portgroups.</p>
 
+**Note:** #From the disconnected node:
+
 1. Enable the ports for the registry and web server through the local firewall:
 ```
 firewall-cmd --add-service=http --add-service=https --permanent
@@ -131,7 +149,7 @@ dnf install -y httpd jq unzip
 
 4. Install the vcenter certificates
 ```
-curl -k -LfO https://vcenter.fq.dn/certs/download.zip`
+curl -k -LfO https://vcenter.example.com/certs/download.zip`
 unzip download.zip
 ```
 
@@ -169,7 +187,7 @@ restorecon -FRvv /var/www/html
 
 9. Create the SSL certificates
 ```
-openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/CN=registry.<DOMAIN>/O=Red Hat/L=Default City/ST=TX/C=US"
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/CN=registry.example.com/O=Red Hat/L=Default City/ST=TX/C=US"
 ```
 
 10. Use `oc image serve` to host the bootstrap registry content
@@ -178,7 +196,7 @@ oc image serve --tls-crt=/root/domain.crt --tls-key=/root/domain.key --listen=':
 ```
 
 11. Test to make sure it's working:
-**Note:** From the disconnected utility node:
+**Note:** #From the disconnected node:
 ```
 ss -plunt | grep 5000
 ```
@@ -288,7 +306,7 @@ cp /root/deployment/install-config.yaml /root/openshift
 openshift-install create cluster --dir=/root/openshift --log-level=debug
 ```
 
-### Monitor the cluster deployment:
+## Monitor the cluster deployment:
 ```
 tail -f /root/openshift/.openshift_install.log
 
@@ -301,7 +319,7 @@ oc get nodes
 oc get machines -A 
 ```
 
-### Destroying the cluster
+## Destroying the cluster
 ```
 openshift-install destroy cluster --dir=openshift --log-level=debug
 ```
