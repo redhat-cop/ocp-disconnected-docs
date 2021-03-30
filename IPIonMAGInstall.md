@@ -315,7 +315,7 @@ tar czf OpenShiftBundle-<OCP_VERSION>.tgz <OCP_VERSION>/
 #From Bastion
 scp -i ~/.ssh/azure-key.pem OpenShiftBundle-<OCP_VERSION>.tgz registry.<DOMAIN>:~
 
-ssh -i ~/.ssh/azure-key.pem registry.<DOMAIN>:~
+ssh -i ~/.ssh/azure-key.pem registry.<DOMAIN>
 ```
 
 
