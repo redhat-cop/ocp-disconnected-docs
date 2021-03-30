@@ -4,9 +4,10 @@
 
 This guide will demonstrate how to install an Azure Red Hat OpenShift (ARO) cluster on an existing disconnected network in Microsoft Azure.  The network will disallow inbound connections from the internet.  The network will restrict outbound connections to the internet, allowing only the following endpoints:
 
-*  `*azure.com *microsoft.com`
-*  `*microsoftonline.com`
-*  `*windows.net`
+* `*azure.com`
+* `*microsoft.com`
+* `*microsoftonline.com`
+* `*windows.net`
 
 *Note*: Restricting outbound connections entirely violates the [Azure Red Hat OpenShift support policy](https://docs.microsoft.com/en-us/azure/openshift/support-policies-v4#cluster-configuration-requirements).
 
@@ -47,7 +48,7 @@ az network vnet subnet create \
 --service-endpoints Microsoft.ContainerRegistry
 ```
 
-*Note*: This subnet accesses Microsoft's internal container registry over a [private endpoint](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview).  The internal container registry is used for provisioning the cluster, and it is not accessible for general use.  See more info in [networking](https://docs.microsoft.com/en-us/azure/openshift/concepts-networking).
+*Note*: This subnet accesses Microsoft's internal container registry over a [private endpoint](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview).  The internal container registry is used for provisioning the cluster, and it is not accessible for general use.  See [networking](https://docs.microsoft.com/en-us/azure/openshift/concepts-networking) for more information.
 
 #### Create empty subnet for worker nodes
 ```bash
@@ -59,7 +60,7 @@ az network vnet subnet create \
 --service-endpoints Microsoft.ContainerRegistry
 ```
 
-*Note*: This subnet accesses Microsoft's internal container registry over a [private endpoint](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview).  The internal container registry is used for provisioning the cluster, and it is not accessible for general use.  See more info in [networking](https://docs.microsoft.com/en-us/azure/openshift/concepts-networking).
+*Note*: This subnet accesses Microsoft's internal container registry over a [private endpoint](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview).  The internal container registry is used for provisioning the cluster, and it is not accessible for general use.  See [networking](https://docs.microsoft.com/en-us/azure/openshift/concepts-networking) for more information.
 
 #### Disable subnet private endpoint policies
 ```bash
@@ -74,7 +75,7 @@ az network vnet subnet update \
 
 #### Create a firewall subnet
 ```bash
-az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n AzureFirewallSubnet --address-prefixes 10.1.10.0/26
+az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n AzureFirewallSubnet --address-prefixes 10.0.10.0/26
 ```
 
 *Note*: The Azure Firewall subnet size should be /26, see the [FAQ](https://docs.microsoft.com/en-us/azure/firewall/firewall-faq#why-does-azure-firewall-need-a--26-subnet-size).
@@ -105,7 +106,7 @@ fwprivaddr=$(az network firewall ip-config list -g $RESOURCEGROUP -f $FIREWALL_N
 
 #### Create routing table
 ```bash
-az network route-table create --name $FIREWALL_NAME-rt-table --resource-group $RESOURCE_GROUP
+az network route-table create --name $FIREWALL_NAME-rt-table --resource-group $RESOURCEGROUP
 ```
 
 #### Create firewall route
@@ -121,20 +122,27 @@ az network route-table route create \
 
 #### Add outbound application rule
 ```bash
-az network firewall application-rule create -g $RESOURCEGROUP -f $FIREWALL_NAME --collection-name azure_ms --name azure --protocols 'http=80' 'https=443' --target-fqdns *azure.com *microsoft.com *microsoftonline.com *windows.net --source-addresses 10.0.0.0/24 10.0.1.0/24 --priority 100 --action Allow
+az network firewall application-rule create \
+  -g $RESOURCEGROUP -f $FIREWALL_NAME \
+  --collection-name azure_ms \
+  --name azure \
+  --protocols 'http=80' 'https=443' \
+  --target-fqdns *azure.com *microsoft.com *microsoftonline.com *windows.net \
+  --source-addresses 10.0.0.0/24 10.0.1.0/24 \
+  --priority 100 --action Allow
 ```
 
 #### Route internal traffic to firewall on the master and worker subnets
 ```bash
-az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name master-subnet --route-table $FIREWALL_NAME-rt-table
-az network vnet subnet update -g $RESOURCEGROUP --vnet-name vnet --name worker-subnet --route-table $FIREWALL_NAME-rt-table
+az network vnet subnet update -g $RESOURCEGROUP --vnet-name $VNET_NAME --name master-subnet --route-table $FIREWALL_NAME-rt-table
+az network vnet subnet update -g $RESOURCEGROUP --vnet-name $VNET_NAME --name worker-subnet --route-table $FIREWALL_NAME-rt-table
 ```
 
 #### Create the ARO cluster in the disconnected network
 ```bash
 az aro create \
   --resource-group $RESOURCEGROUP \
-  --name aro-cluster \
+  --name $CLUSTER \
   --vnet $VNET_NAME \
   --master-subnet master-subnet \
   --worker-subnet worker-subnet \
@@ -218,7 +226,7 @@ $ oc whoami
 kube:admin
 ```
 
-#### Test outbound connection to public internet (redhat.com)
+#### Test outbound connection to public internet
 
 *Note*: Make sure to connect to ARO through the Bastion host (see previous section)
 
