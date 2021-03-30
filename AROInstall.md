@@ -43,8 +43,11 @@ az network vnet subnet create \
 --resource-group $RESOURCEGROUP \
 --vnet-name $VNET_NAME \
 --name master-subnet \
---address-prefixes 10.0.0.0/24
+--address-prefixes 10.0.0.0/24 \
+--service-endpoints Microsoft.ContainerRegistry
 ```
+
+*Note*: This subnet accesses Microsoft's internal container registry over a [private endpoint](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview).  The internal container registry is used for provisioning the cluster, and it is not accessible for general use.  See more info in [networking](https://docs.microsoft.com/en-us/azure/openshift/concepts-networking).
 
 #### Create empty subnet for worker nodes
 ```bash
@@ -52,8 +55,11 @@ az network vnet subnet create \
 --resource-group $RESOURCEGROUP \
 --vnet-name $VNET_NAME \
 --name worker-subnet \
---address-prefixes 10.0.1.0/24
+--address-prefixes 10.0.1.0/24 \
+--service-endpoints Microsoft.ContainerRegistry
 ```
+
+*Note*: This subnet accesses Microsoft's internal container registry over a [private endpoint](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview).  The internal container registry is used for provisioning the cluster, and it is not accessible for general use.  See more info in [networking](https://docs.microsoft.com/en-us/azure/openshift/concepts-networking).
 
 #### Disable subnet private endpoint policies
 ```bash
@@ -68,7 +74,7 @@ az network vnet subnet update \
 
 #### Create a firewall subnet
 ```bash
-az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n AzureFirewallSubnet --address-prefixes 10.1.10.0/26 --service-endpoints Microsoft.ContainerRegistry
+az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n AzureFirewallSubnet --address-prefixes 10.1.10.0/26
 ```
 
 *Note*: The Azure Firewall subnet size should be /26, see the [FAQ](https://docs.microsoft.com/en-us/azure/firewall/firewall-faq#why-does-azure-firewall-need-a--26-subnet-size).
@@ -92,7 +98,7 @@ az network firewall create -g $RESOURCEGROUP -n $FIREWALL_NAME --location $LOCAT
 az network firewall ip-config create --firewall-name $FIREWALL_NAME --name FW-config --public-ip-address fw-pip --resource-group $RESOURCEGROUP --vnet-name $VNET_NAME
 ```
 
-Get reference to Azure Firewall private IP address
+Set Azure Firewall private IP address
 ```bash
 fwprivaddr=$(az network firewall ip-config list -g $RESOURCEGROUP -f $FIREWALL_NAME --query "[?name=='FW-config'].privateIpAddress" --output tsv)
 ```
@@ -136,6 +142,8 @@ az aro create \
   --ingress-visibility Private
 ```
 
+*Note*: Optionally add `--pull-secret` if you have a [Red Hat pull secret](https://docs.microsoft.com/en-us/azure/openshift/howto-add-update-pull-secret)
+
 #### Create Bastion Host in public subnet
 
 Create SSH key pair
@@ -145,7 +153,7 @@ ssh-keygen -m PEM -t rsa -b 4096 -f azure-key
 
 Create VM
 ```bash
-az vm create -n <BASTION> -g $RESOURCEGROUP \
+az vm create -n bastion -g $RESOURCEGROUP \
   --image RedHat:RHEL:8.2:latest \
   --size Standard_D2s_v3 \
   --public-ip-address bastion-pub-ip \
@@ -155,3 +163,75 @@ az vm create -n <BASTION> -g $RESOURCEGROUP \
 ```
 
 ## Smoke Test
+
+#### Connect to ARO over public internet
+
+Set kubeadmin password
+```bash
+KUBEADMIN_PASSWORD=$(az aro list-credentials --name $CLUSTER --resource-group $RESOURCEGROUP --query kubeadminPassword -o tsv)
+```
+
+Try logging in
+```bash
+API_SERVER=$(az aro show -g $RESOURCEGROUP -n $CLUSTER --query apiserverProfile.url -o tsv)
+oc login $API_SERVER -u kubeadmin -p $KUBEADMIN_PASSWORD
+```
+
+The connection fails because the API server is not accessible to the public internet.
+
+
+#### Connect to ARO through Bastion host
+
+Make note of `API_SERVER` and `KUBEADMIN_PASSWORD`
+```bash
+echo $API_SERVER
+echo $KUBEADMIN_PASSWORD
+```
+
+SSH to the Bastion host
+```bash
+BASTION_PUBLIC_IP=$(az vm show -d -g $RESOURCEGROUP -n bastion --query publicIps -o tsv)
+ssh -i azure-key azureuser@$BASTION_PUBLIC_IP
+```
+
+Install `oc` on the Bastion host
+
+*Note*: You can find the latest release of the CLI [here](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/)
+
+```bash
+$ wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+$ mkdir openshift
+$ tar -zxvf openshift-client-linux.tar.gz -C openshift
+$ echo 'export PATH=$PATH:~/openshift' >> ~/.bashrc && source ~/.bashrc
+```
+
+Login to the cluster
+
+```bash
+$ oc login <API_SERVER> -u kubeadmin -p <KUBEADMIN_PASSWORD>
+$ oc whoami
+```
+
+> Output
+
+```
+kube:admin
+```
+
+#### Test outbound connection to public internet (redhat.com)
+
+*Note*: Make sure to connect to ARO through the Bastion host (see previous section)
+
+Execute an outbound internet connection from a pod in the cluster
+
+```bash
+$ oc exec -it alertmanager-main-0 -n openshift-monitoring -- curl redhat.com
+```
+
+> Output (sample)
+
+```
+HTTP request from 10.20.1.6:42876 to redhat.com:80. Url: redhat.com. Action: Deny. No rule matched. Proceeding with default action
+```
+
+The connection is denied by the Azure Firewall.
