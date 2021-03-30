@@ -8,7 +8,7 @@ This guide will demonstrate how to install an Azure Red Hat OpenShift (ARO) clus
 *  `*microsoftonline.com`
 *  `*windows.net`
 
-Note that restricting outbound connections entirely violates the [Azure Red Hat OpenShift support policy](https://docs.microsoft.com/en-us/azure/openshift/support-policies-v4#cluster-configuration-requirements).
+*Note*: Restricting outbound connections entirely violates the [Azure Red Hat OpenShift support policy](https://docs.microsoft.com/en-us/azure/openshift/support-policies-v4#cluster-configuration-requirements).
 
 ## Installation
 
@@ -71,9 +71,11 @@ az network vnet subnet update \
 az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n AzureFirewallSubnet --address-prefixes 10.1.10.0/26 --service-endpoints Microsoft.ContainerRegistry
 ```
 
-#### Create a jump host subnet
+*Note*: The Azure Firewall subnet size should be /26, see the [FAQ](https://docs.microsoft.com/en-us/azure/firewall/firewall-faq#why-does-azure-firewall-need-a--26-subnet-size).
+
+#### Create a public subnet for bastion host
 ```bash
-az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n JumpHostSubnet --address-prefixes 10.0.2.0/24
+az network vnet subnet create -g $RESOURCEGROUP --vnet-name $VNET_NAME -n public-subnet --address-prefixes 10.0.2.0/24
 ```
 
 #### Create Azure Firewall
@@ -134,5 +136,22 @@ az aro create \
   --ingress-visibility Private
 ```
 
-## Smoke Test
+#### Create Bastion Host in public subnet
 
+Create SSH key pair
+```bash
+ssh-keygen -m PEM -t rsa -b 4096 -f azure-key
+```
+
+Create VM
+```bash
+az vm create -n <BASTION> -g $RESOURCEGROUP \
+  --image RedHat:RHEL:8.2:latest \
+  --size Standard_D2s_v3 \
+  --public-ip-address bastion-pub-ip \
+  --vnet-name $VNET_NAME --subnet public-subnet \
+  --admin-username azureuser \
+  --ssh-key-values azure-key.pub
+```
+
+## Smoke Test
