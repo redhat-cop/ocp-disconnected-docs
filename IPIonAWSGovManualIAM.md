@@ -28,29 +28,31 @@ This guide will assume that the user has valid accounts and subscriptions to bot
 ## Installing OpenShift 
 
 ### Create OpenShift Installation Bundle
-1. Download and compress the bundle on internet connected machine using the OpenShift4-mirror companion utility found [**here**](https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror)
+1. Download and compress the stable release bundle on internet an connected machine using the OpenShift4-mirror companion utility found [**here**](https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/openshift4-mirror)
    
 
    You will first need to retrieve an OpenShift pull secret. Once you have retrieved that, enter it into the literals of the value for `--pull-secret` in the command below. Pull secrets can be obtained from https://cloud.redhat.com/openshift/install/aws/installer-provisioned
 
     ```
+    OCP_VER=$(curl http://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/release.txt 2>&1 | grep -oP "(?<=Version:\s\s).*")
     podman run -it --security-opt label=disable -v ./:/app/bundle quay.io/redhatgov/openshift4_mirror:latest \
       ./openshift_mirror bundle \
-      --openshift-version 4.7.0 \
+      --openshift-version ${OCP_VER} \
       --platform aws \
       --skip-existing \
       --skip-catalogs \
       --pull-secret '{"auths":{"cloud.openshift.com":{"auth":"b3Blb...' && \
-    git clone https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/documentation.git ./4.7.0/ocp-disconnected && \
-    tar -zcvf openshift-4-7-0.tar.gz 4.7.0
+    git clone https://repo1.dso.mil/platform-one/distros/red-hat/ocp4/documentation.git ./${OCP_VER}/ocp-disconnected && \
+    tar -zcvf openshift-${OCP_VER}.tar.gz ${OCP_VER}
     ```
 2. Transfer bundle from internet connected machine to disconnected vpc host.
 
 #
 ### Prepare and Deploy
-3. Extract bundle on disconnected vpc host.
-    ```    
-    tar -xzvf openshift-4-7-0.tar.gz
+3. Extract bundle on disconnected vpc host. From the directory containing the OCP bundle.
+    ```
+    OCP_VER=$()    
+    tar -xzvf openshift-${OCP_VER}.tar.gz
     ```
 
 4. Create S3 Bucket and attach policies.
