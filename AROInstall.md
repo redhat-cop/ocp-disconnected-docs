@@ -2,12 +2,7 @@
 
 ## Overview
 
-This guide will demonstrate how to install an Azure Red Hat OpenShift (ARO) cluster on an existing disconnected network in Microsoft Azure.  The network will disallow inbound connections from the internet.  The network will restrict outbound connections to the internet, allowing only the following endpoints:
-
-* `*azure.com`
-* `*microsoft.com`
-* `*microsoftonline.com`
-* `*windows.net`
+This guide will demonstrate how to install an Azure Red Hat OpenShift (ARO) cluster on an existing disconnected network in Microsoft Azure.  The network will disallow inbound connections from the internet.  The network will restrict outbound connections to the internet based on the reqired [official list provided by Microsoft](https://docs.microsoft.com/en-us/azure/openshift/howto-restrict-egress#minimum-required-fqdn--application-rules).
 
 *Note*: Restricting outbound connections entirely violates the [Azure Red Hat OpenShift support policy](https://docs.microsoft.com/en-us/azure/openshift/support-policies-v4#cluster-configuration-requirements).
 
@@ -127,7 +122,7 @@ az network firewall application-rule create \
   --collection-name azure_ms \
   --name azure \
   --protocols 'http=80' 'https=443' \
-  --target-fqdns *azure.com *microsoft.com *microsoftonline.com *windows.net \
+  --target-fqdns *.quay.io sso.redhat.com registry.redhat.io management.azure.com mirror.openshift.com api.openshift.com registry.access.redhat.com login.microsoftonline.com gcs.prod.monitoring.core.windows.net *.blob.core.windows.net *.servicebus.windows.net *.table.core.windows.net \
   --source-addresses 10.0.0.0/24 10.0.1.0/24 \
   --priority 100 --action Allow
 ```
