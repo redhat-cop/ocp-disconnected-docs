@@ -207,3 +207,6 @@ In this section, we will walk you through installations using each of the method
 
 [Sparta Install Docs](SpartaInstall.md)
 
+## APPENDIX
+
+[Sample Disconnected Registry Implementations](appendix/disconnected-registry.md)
