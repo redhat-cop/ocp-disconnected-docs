@@ -1,10 +1,10 @@
 ## Deploying a Disconnected Registry for OpenShift 4 on Standalone Non-production Quay
-To install OpenShift 4 in a disconnected environment, you must provide a registry server to host the images for the installation.  Typically, the Docker registry image is sufficient and recommended.  However, in some cases a customer may wish to only use packages provided by Red Hat.  Red Hat Quay can be installed in a standalone non-production configuration to support installing OpenShift.
+To install OpenShift 4 in a disconnected environment, you must provide a registry server to host the images for the installation.  This process is documented in the OpensShift documentation section [Creating a mirror registry for installation in a restricted network](https://docs.openshift.com/container-platform/4.7/installing/install_config/installing-restricted-networks-preparations.html).  The registry must adhere to the most recent container image API, referred to as `schema2`, see [About the mirror registry](https://docs.openshift.com/container-platform/4.7/installing/install_config/installing-restricted-networks-preparations.html#installation-about-mirror-registry_installing-restricted-networks-preparations).  OpenShift documentation of the disconnected mirroring process uses the [Docker registery container](https://hub.docker.com/_/registry).  However, in some cases a customer may wish to only use packages provided by Red Hat.  Red Hat Quay can be installed in a standalone non-production configuration to support installing OpenShift.
 
 ### Requirements
 * An internet connected host with podman installed
 * A login for registry.redhat.io (Red Hat customer login)
-* Approximately 20G free disk space to host base OpenShift install images
+* Enough free disk space for the release images.  OpenShift 4.7 images are approximately 7GB.
 
 ### Detailed Steps
 1. Set default location for Quay installation
@@ -89,7 +89,7 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
 
 5.  Setup Quay
 
-    a. Start quay configuration container
+    a. Start quay configuration container.  The last parameter here is the _*quayconfig*_ user password.  Use whatever value you wish here.
         
     ```
     sudo podman run -it --name quay_config -p 8080:8080 \ registry.redhat.io/quay/quay-rhel8:v3.4.3 config secret
@@ -97,7 +97,7 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
 
     b. Configure quay
 
-    When prompted for authentication, use quayconfig and secret for the credentials.
+    After starting the Quay config container, access the config web ui on the host running the container, for example http://localhost:8080 (or substitute localhost with the host system).  When prompted for authentication, use _*quayconfig*_ and _*secret*_ (or the whatever value was used in the previous step) for the credentials.
 
     The minimum required changes are:
 
@@ -154,7 +154,7 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
     - These names will be used in the next step.
   
   
-7.  Mirror OpenShift image to disconnected quay
+7.  Mirror OpenShift image to disconnected disk on internet connected host
     ```
     EMAIL=youremail@example.com
     OCP_RELEASE=4.7.3
@@ -174,11 +174,22 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
 
     # this will print the info (imageContentSources) needed to put in install-config.yaml which won't get printed syncing to local directory
     oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
-
+        
     # sync to local directory
-    # this directory can then be zipped and transferred high-side
     oc adm release mirror -a ${LOCAL_SECRET_JSON} --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
+    
+    tar cvf openshift-${OCP_RELEASE}-release-bundle.tar.gz ${REMOVABLE_MEDIA_PATH}
+    ```
 
+8.  Transfer the tar file openshift-${OCP_LEASE}-release-bundle.tar.gz to the disconnected registry host.
+
+9.  Extract the release bundle.  This _*MUST*_ be extracted to the same path as ${REMOVABLE_MEDIA_PATH} in Step 7.  If you used an absolute path in Step 7, this will work automatically.
+    ```
+    tar xvf /path/to/openshift-${OCP_RELEASE}-release-bundle.tar.gz
+    ```
+
+10. Mirror the release images to your disconnected registry
+    ```
     # mirror images from directory to quay, --insecure shouldn't be needed if quay has a valid cert
     oc image mirror -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mirror "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}
     ```
