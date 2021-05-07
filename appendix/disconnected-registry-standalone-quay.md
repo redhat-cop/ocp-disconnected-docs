@@ -207,7 +207,7 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
     - Click Create New Repository to create a repository to host the OpenShift release images.
     - These names will be used in the next step.
   
-8.  Extract the release bundle.  This _*MUST*_ be extracted to the same path as ${REMOVABLE_MEDIA_PATH} in Step 7.  If you used an absolute path in Step 7, this will work automatically.
+8.  Extract the release bundle.  This _*MUST*_ be extracted to the same absolute path as ${REMOVABLE_MEDIA_PATH} in Step 7.
     ```
     tar xvf openshift-${OCP_RELEASE}-release-bundle.tar.gz
     ```
