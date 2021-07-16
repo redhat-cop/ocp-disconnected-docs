@@ -118,6 +118,14 @@ az network route-table create \
   --resource-group <RESOURCE_GROUP> \
   --disable-bgp-route-propagation true
 
+az network route-table route create \
+  --resource-group ${RG} \
+  --name fw-route \
+  --route-table-name Firewall-rt-table \
+  --address-prefix 0.0.0.0/0 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address $fwprivaddr
+
 az network firewall application-rule create \
   --collection-name azure_gov \
   --firewall-name <FW> \

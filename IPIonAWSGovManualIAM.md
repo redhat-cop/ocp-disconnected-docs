@@ -1,6 +1,6 @@
 # Installing OpenShift in Disconnected AWS GovCloud using IPI
 
-
+## NOTICE: OpenShift 4.7.10 may not install into GovCloud. Please see https://bugzilla.redhat.com/show_bug.cgi?id=1958420 for more info.
 ## Overview
 
 This guide is intended to demonstrate how to perform the OpenShift installation using the IPI method on AWS GovCloud. In addition, the guide will walk through performing this installation on an existing disconnected network. In other words the network does not allow access to and from the internet.
