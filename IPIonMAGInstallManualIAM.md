@@ -100,19 +100,74 @@ az extension add -n azure-firewall
 
 az network firewall create -g <RESOURCE_GROUP> -n <FW>
 
-az network vnet subnet create -g <RESOURCE_GROUP> --vnet-name <VNET_NAME> -n AzureFirewallSubnet --address-prefixes 10.1.10.0/24
+az network vnet subnet create \
+  -g <RESOURCE_GROUP> \
+  --vnet-name <VNET_NAME> \
+  -n AzureFirewallSubnet \
+  --address-prefixes 10.1.10.0/24
 
-az network public-ip create --name fw-pip --resource-group <RESOURCE_GROUP> --allocation-method static --sku standard
+az network public-ip create \
+  --name fw-pip \
+  --resource-group <RESOURCE_GROUP> \
+  --allocation-method static \
+  --sku standard
 
-az network firewall ip-config create --firewall-name <FW> --name FW-config --public-ip-address fw-pip --resource-group <RESOURCE_GROUP> --vnet-name <VNET_NAME>
+az network firewall ip-config create \
+  --firewall-name <FW> \
+  --name FW-config \
+  --public-ip-address fw-pip \
+  --resource-group <RESOURCE_GROUP> \
+  --vnet-name <VNET_NAME>
 
-fwprivaddr=$(az network firewall ip-config list -g <RESOURCE_GROUP> -f <FW> --query "[?name=='FW-config'].privateIpAddress" --output tsv)
+fwprivaddr=$( \
+  az network firewall ip-config list \
+  -g <RESOURCE_GROUP> \
+  -f <FW> \
+  --query "[?name=='FW-config'].privateIpAddress" \
+  --output tsv)
 
-az network route-table create --name Firewall-rt-table --resource-group <RESOURCE_GROUP> --disable-bgp-route-propagation true
+az network route-table create \
+  --name Firewall-rt-table \
+  --resource-group <RESOURCE_GROUP> \
+  --disable-bgp-route-propagation true
 
-az network firewall application-rule create --collection-name azure_gov --firewall-name <FW> --name azure --protocols Http=80 Https=443 --resource-group <RESOURCE_GROUP> --target-fqdns *microsoftonline.us *graph.windows.net *usgovcloudapi.net *applicationinsights.us *microsoft.us --source-addresses 10.1.1.0/24 10.1.2.0/24 --priority 100 --action Allow
+az network route-table route create \
+  --resource-group ${RG} \
+  --name fw-route \
+  --route-table-name Firewall-rt-table \
+  --address-prefix 0.0.0.0/0 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address $fwprivaddr
 
-az network firewall application-rule create --collection-name azure_ms --firewall-name <FW> --name azure --protocols Http=80 Https=443 --resource-group <RESOURCE_GROUP> --target-fqdns *azure.com *microsoft.com *microsoftonline.com *windows.net --source-addresses 10.1.1.0/24 10.1.2.0/24 --priority 200 --action Allow
+az network firewall application-rule create \
+  --collection-name azure_gov \
+  --firewall-name <FW> \
+  --name azure \
+  --protocols Http=80 Https=443 \
+  --resource-group <RESOURCE_GROUP> \
+  --target-fqdns \
+    *microsoftonline.us \
+    *graph.windows.net \
+    *usgovcloudapi.net \
+    *applicationinsights.us \
+    *microsoft.us \
+  --source-addresses 10.1.1.0/24 10.1.2.0/24 \
+  --priority 100 \
+  --action Allow
+
+az network firewall application-rule create \
+  --collection-name azure_ms \
+  --firewall-name <FW> \
+  --name azure \
+  --protocols Http=80 Https=443 \
+  --resource-group <RESOURCE_GROUP> \
+  --target-fqdns \
+    *azure.com *microsoft.com \
+    *microsoftonline.com \
+    *windows.net \
+  --source-addresses 10.1.1.0/24 10.1.2.0/24 \
+  --priority 200 \
+  --action Allow
 ```
 
 
@@ -120,7 +175,11 @@ az network firewall application-rule create --collection-name azure_ms --firewal
 
 
 ```
-az network vnet subnet create -g <RESOURCE_GROUP> --vnet-name <VNET_NAME> -n <PUBLIC_SUBNET> --address-prefixes 10.1.0.0/24
+az network vnet subnet create \
+  -g <RESOURCE_GROUP> \
+  --vnet-name <VNET_NAME> \
+  -n <PUBLIC_SUBNET> \
+  --address-prefixes 10.1.0.0/24
 ```
 
 
@@ -128,7 +187,12 @@ az network vnet subnet create -g <RESOURCE_GROUP> --vnet-name <VNET_NAME> -n <PU
 
 
 ```
-az network vnet subnet create  -g <RESOURCE_GROUP> --vnet-name <VNET_NAME> -n <CONTROL_SUBNET> --address-prefixes 10.1.1.0/24 --route-table Firewall-rt-table
+az network vnet subnet create  \
+  -g <RESOURCE_GROUP> \
+  --vnet-name <VNET_NAME> \
+  -n <CONTROL_SUBNET> \
+  --address-prefixes 10.1.1.0/24 \
+  --route-table Firewall-rt-table
 ```
 
 
@@ -136,7 +200,12 @@ az network vnet subnet create  -g <RESOURCE_GROUP> --vnet-name <VNET_NAME> -n <C
 
 
 ```
-az network vnet subnet create  -g <RESOURCE_GROUP> --vnet-name <VNET_NAME> -n <COMPUTE_SUBNET> --address-prefixes 10.1.2.0/24 --route-table Firewall-rt-table
+az network vnet subnet create \
+  -g <RESOURCE_GROUP> \
+  --vnet-name <VNET_NAME> \
+  -n <COMPUTE_SUBNET> \
+  --address-prefixes 10.1.2.0/24 \
+  --route-table Firewall-rt-table
 ```
 
 
@@ -183,10 +252,15 @@ The REGISTRY_IP is the private ip address assigned to the Registry host in the p
 ```
 az network private-dns zone create -g  <RESOURCE_GROUP> -n <DOMAIN>
 
-az network private-dns link vnet create -g <RESOURCE_GROUP> -n private-dnslink \
-   -z <DOMAIN> -v <VNET_NAME> -e true
+az network private-dns link vnet create \
+  -g <RESOURCE_GROUP> -n private-dnslink \
+  -z <DOMAIN> -v <VNET_NAME> -e true
 
-az network private-dns record-set a add-record -g  <RESOURCE_GROUP> -z <DOMAIN> -n registry -a <REGISTRY_IP>
+az network private-dns record-set a add-record \
+  -g <RESOURCE_GROUP> \
+  -z <DOMAIN> \
+  -n registry \
+  -a <REGISTRY_IP>
 ```
 
 
