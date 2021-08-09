@@ -1,0 +1,58 @@
+apiVersion: v1
+baseDomain: sfxworks.net
+additionalTrustBundle: |
+  -----BEGIN CERTIFICATE-----
+  -----END CERTIFICATE-----
+imageContentSources:
+- mirrors:
+  - ip-10-2-63-100.us-gov-east-1.compute.internal:5000/openshift/release
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - ip-10-2-63-100.us-gov-east-1.compute.internal:5000/openshift/release
+  source: registry.svc.ci.openshift.org/ocp/release
+- mirrors:
+  - ip-10-2-63-100.us-gov-east-1.compute.internal:5000/openshift/release
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform:
+    aws:
+      type: m5.xlarge
+  replicas: 3
+metadata:
+  name: terraform
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.2.48.0/20
+  - cidr: 10.2.80.0/20
+  - cidr: 10.2.64.0/20
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  aws:
+    region: us-gov-east-1
+    zones:
+    - us-gov-east-1
+    - us-gov-east-2
+    - us-gov-east-3
+    subnets:
+    - subnet-0fb704982b969f30a
+    - subnet-09d0fcb59739b1db9
+    - subnet-0fbe102bad6ea84c5
+    amiID: ami-0bae2581da0f8ce7b
+pullSecret: ''
+sshKey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8CFvsp8ltw6JQapn0zlQhgbgfUgtQT0sWlEX2N1k6fHS03bIC7kQ5/vRGHgdjmUrPj9DZIqJ8ZhilSMRACwbkkdDaNmf0AQpfTHki3RI4BVMD+XQ9+/lxykiKOLV6HyIhtCNIlpV3IQePJOS+EgXm4svUWh8Z4i93fvfiWAjTQZNJHpRkXNNMqH5UBcKykB3+vFTRvLuzeDblLlPme3HNQcgCTruTUJA/Lh4hCHiqRFAzJ/FRe/UjyRSlAgilqK0MODABfyFRzhkIBj1tT4BX9pFbyy3DcpiQ+X2kPCNV9zSdaAqDL1OJly6U5LEJ6217KOfkWWZH296Cr83BhF5gDtOicg3V2NtUtTKOMOhUNSmxvhbaI36n58qCCNvsmqqiQ9T09itfAF2eBiyz014GfAhL49phHCn8L+BxbwtBNr7RlHDDtXvEKEdd2klIsptQUezzNB+K9YHEwivmKt6DLQOZghm1PA71Z+7cNh/I2f+AIk0Ag4T1gS4IZBb8fac=
+fips: false
+publish: Internal
