@@ -31,6 +31,9 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
     REGISTRY_CREDS=$(echo -n '<quay_user>:<quay_pass>' | base64 -w0)
     jq ".auths += {\"${LOCAL_REGISTRY}\": {\"auth\": \"${REGISTRY_CREDS}\",\"email\": \"${EMAIL}\"}}" < ${LOCAL_SECRET_TXT} > ${LOCAL_SECRET_JSON}
 
+    # Transfer merged pull-secret to disconnected host
+    scp ${LOCAL_SECRET_JSON} <user>@<registry_host>:
+
     # this will print the info (imageContentSources) needed to put in install-config.yaml which won't get printed syncing to local directory
     oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
         
@@ -78,9 +81,9 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
 
     ```
     sudo podman run -d --name postgresql-quay -e POSTGRESQL_USER=quayuser \
-        -e POSTGRESQL_PASSWORD=quaypass -e POSTGRESQL_DATABASE=quay -e \    
+        -e POSTGRESQL_PASSWORD=quaypass -e POSTGRESQL_DATABASE=quay -e \
         POSTGRESQL_ADMIN_PASSWORD=adminpass -p 5432:5432 \
-        -v $QUAY/postgres-quay:/var/lib/pgsql/data:Z \ 
+        -v $QUAY/postgresql-quay:/var/lib/pgsql/data:Z \
         registry.redhat.io/rhel8/postgresql-10:1
     ```
 
@@ -139,6 +142,9 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
     EOF
 
     openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -config ssl-ca.cnf
+
+    cp domain.crt /etc/pki/ca-trust/source/anchors
+    update-ca-trust extract
     ```
 
 6.  Setup Quay
@@ -146,7 +152,7 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
     a. Start quay configuration container.  The last parameter here is the _*quayconfig*_ user password.  Use whatever value you wish here.
         
     ```
-    sudo podman run -it --name quay_config -p 8080:8080 \ registry.redhat.io/quay/quay-rhel8:v3.4.3 config secret
+    sudo podman run -it --name quay_config -p 8080:8080 registry.redhat.io/quay/quay-rhel8:v3.4.3 config secret
     ```
 
     b. Configure quay
@@ -194,7 +200,7 @@ To install OpenShift 4 in a disconnected environment, you must provide a registr
 
     d. Start quay container
     ```
-    sudo podman run -d -p 8080:8080 --name=quay -v $QUAY/config:/conf/stack:Z \ 
+    sudo podman run -d -p 8443:8443 --name=quay -v $QUAY/config:/conf/stack:Z \ 
     -v $QUAY/storage:/datastorage:Z registry.redhat.io/quay/quay-rhel8:v3.4.3
     ```
 
