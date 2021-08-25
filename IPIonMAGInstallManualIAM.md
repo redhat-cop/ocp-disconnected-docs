@@ -376,7 +376,7 @@ vi install-config.yaml # copy and paste install-config.template from below
 
 
 #### 5. install-config.template
-
+The template below has defined the parameters for this use case. Please supply the user specific content. Note, that is FIPS cryptography is required, this must be set in the install-config.yaml prior to installation. It cannot be changed post-installation.
 
 ```
 apiVersion: v1
@@ -423,6 +423,7 @@ platform:
 	region: <AZURE_REGION>
 	virtualNetwork: <VNET_NAME>
 publish: Internal
+fips: <true/false>
 pullSecret: |
   { "auths": { "<REGISTRY_DNS>": { "auth": "", "email": "example@redhat.com" } } }
 additionalTrustBundle: |
