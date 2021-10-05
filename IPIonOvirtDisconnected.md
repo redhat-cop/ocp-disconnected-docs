@@ -103,6 +103,8 @@ Assumption: RHV 4.6 already installed, configured
 
 Goal: Install a RHEL host where installation and maintenance will be done from. This host will be used to validate environment and hold configuration settings, management keys etc. The host will also be able to SSH into any OCP node for diagnostics - this access can be blocked by firewalls for any other host. When not in use, this host should be shutdown but NOT removed.
 
+## Confirm RHV installation
+
 Log into the RHVM cluster as a cluster admin - admin rights to the oVirt cluster meant for OCP is a minimum. Check the following exists:
 
 * Cluster defined with at least 3 hosts - note the cluster ID of this cluster (ie ccc53763-c479-410f-af0b-ec846929b46h). This is the Cluster ID and will be needed in the next section.
@@ -110,8 +112,75 @@ Log into the RHVM cluster as a cluster admin - admin rights to the oVirt cluster
 	+ Ensure a logical network for OCP is defined - ie. "aServerNetwork". This network must be assigned to NICs on each host that are on a 10 Gbps switch. 2 bonded nics is recommended but not required.
 	+ Ensure compatability version is set to 4.6 for the cluster.
 	+ Cluster should have a storage network defined to separate it from the VM traffic
-	+ Note the Network ID of the "aServerNetwork" network for OCP (ie 5efa608a-2e5c-482c-a510-2e8adbef939f) - this is the Network ID needed for the install-config later in this guide.
+* Network Definition - "aServerNetwork" in this example
+	+ Take note of the vnicProfileID of the "aServerNetwork" network for OCP (ie 1bf648af-a1f6-4c13-8fd7-636a11b2fd36) - this is the Network ID needed for the install-config later in this guide.
+* Storage definition
+	+ The installer will use a single storage domain for the VMs during creation, and create a Storage Class pointing to this storage domain for registry storage, etcd etc. Post installation you may want to add additional storage classes, where some could point to additional storage domains in oVirt, but for the installation we can only select one.
+	+ Storage network must be high IO - spinning disks are not supported/recommended. SSDs at a minimum. NVMe is recommended.
 
+If you cannot find the id for the vnicProfileID in the web-console, the following ansible will return the ID (from the Bastion host that will be created in the next step - the IDs are not created until the install-config is to be created)
+
+ovirt-network.yaml:
+```ansible
+---
+- name: Retrieve vNIC ID
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  vars:
+    network: "aServerNetwork"
+
+  tasks:
+  - block:
+    - name: Obtain SSO token with using username/password credentials
+      ovirt_auth:
+        url: "https://rhvm44.example.com/ovirt-engine/api"
+        username: "rhevadmin@example.com"
+        ca_file: "{{ lookup('env','HOME') }}/ansible/data/ca.crt"
+        password: "secretpassword"
+ 		- name: Get network info
+      ovirt_network_info:
+        auth: "{{ ovirt_auth }}"
+	      pattern: "name={{ network }}"
+		    fetch_nested: yes
+	    register: netinfo
+	  - debug:
+	      var: netinfo
+    always:
+    - name: Always revoke the SSO token
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"
+```
+
+In the result will be a list of vNicProfiles - typically there will just be one. This is the ID needed above.
+
+To provide the ovirt module, issue the following command:
+
+```bash
+$ ansible-galaxy collection install redhat.rhv
+```
+
+If some of the above areas are not present, do not proceed until oVirt is configured with the proper settings.
+
+* In the installation configuration you'll need the following values:
+	- ovirt_cluster_id: ccc53763-c479-410f-af0b-ec846929b46h
+	- ovirt_network_name: aServerNetwork
+	- ovirt_storage_domain_id: 9008664c-f69c-4139-bc4f-266aacda6ebf
+	- vnicProfileID: 1bf648af-a1f6-4c13-8fd7-636a11b2fd36
+
+With the above confirmed and recorded, clarify what subnet the aServerNetwork is assigned. This depends on the external network the cluster is connected to and isn't part of oVirt.
+
+## Install/upload RHEL ISO
+If the RHV environment does not have a RHEL template, and PXE boots using a Satellite server in the disconnected environment isn't available, we'll need to start by uploading the RHEL ISO that was put on the media for the offline site in the steps above.
+
+To upload ISO's there are two options:
+1) In the RHV Management console, open the storage domain and click UPLOAD. Choose the ISO file and wait for it to be uploaded.
+2) Add the ISO to the "iso" domain (no deprecated) - this is often a NFS share. Copying the ISO directly to this NFS share will make it available.
+
+To create a template, we first create a blank VM using the ISO as the boot media.
+
+![Screenshot - create empty VM](/images/ovirtVMCreateImg1.png)
 
 
 
