@@ -25,7 +25,7 @@ Definitions:
 
 # Prerequisites
 
-This guide assumes an already installed and working version of RHV 4.4. The installation guide can be found here: https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.4/html/product_guide/installation
+This guide assumes an already installed and working version of RHV 4.6. The installation guide can be found here: https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.4/html/product_guide/installation
 
 Minimal configuration:
 * 3 RHVH nodes with 16 cores, 128GB of memory each. 32 cores is recommended if ODF is needed as part of the installation.
@@ -47,31 +47,26 @@ TODO .. add setup of networks, storage and users
 
 # Online Bastion Configuration
 
-Note - this bastion host must be connected to the internet. It's used to retrieve all software needed for the installation and make an export to take to the offline cluster.
+Note - this bastion host must be connected to the internet. It's used to retrieve all software needed for the installation and make an export to take to the offline cluster. This host should/will not have access to the network where OCP eventually will be installed.
 
 ## Install the OC CLI
 On a RHEL8, use a non-root account and execute the following content:
 
-``` bash
+```bash
 mkdir $HOME/{bin,Downloads} 2>/dev/null
 
-cat <<EOF > $HOME/bin/env.sh
-export ocp4url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest"
-export bin=$HOME/bin"
-export ocptar="openshift-client-linux.tar.gz"
-export ocpinstall="openshift-install-linux.tar.gz"
-EOF
+ocp4url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest"
+bin=$HOME/bin"
+ocptar="openshift-client-linux.tar.gz"
+ocpinstall="openshift-install-linux.tar.gz"
+rhcos="rhcos-openstack.x86_64.qcow2.gz"
 
-chmod +x $HOME/bin/env.sh
-
-source $HOME/bin/env.sh
-
-for item in $ocptar $ocpinstall; do
-  curl -o $HOME/Downloads/$item ${ocp4url}/${item}
+for item in $ocptar $ocpinstall $rhcos; do
+  curl -o "$HOME/Downloads/$item" "${ocp4url}/${item}"
 done
 
-tar -pxv -C $HOME/bin -f $HOME/Downloads/${ocptar}
-tar -pxv -C $HOME/bin -f $HOME/Downloads/${ocpinstall}
+tar -pxv -C $bin -f "$HOME/Downloads/${ocptar}"
+tar -pxv -C $bin -f "$HOME/Downloads/${ocpinstall}"
 
 rm $HOME/bin/README*
 
@@ -79,7 +74,45 @@ rm $HOME/bin/README*
 oc version
 ```
 
-Save the file
+## Copy and make ready for export all container imageContentSources
 
-* The OC CLI
-* A [disconnected registry](appendix/disconnected-registry-standalone-quay.md). Any registry can be used; this guide assumes QUAY.
+The RHEL8 host must have podman installed.
+
+A [disconnected registry](appendix/disconnected-registry-standalone-quay.md) must be installed. Any registry can be used; this guide assumes QUAY.
+
+The resulting files should be copied to $HOME/Downloads
+
+## Copy all files to offline media
+
+The above steps results in several files, including openshift-${OCP_RELEASE}-release-bundle.tar.gz that needs to be copied to the $HOME/Downloads directory. From there, a simple copy to a USB or use *genisoimage* to create ISO that can be copied to DVDs. Note, these images will be sizable - standard music ISOs will not be large enough. Depending on the security requirements on the disconnected site, find the media that makes most sense. Note, there's a good chance what-ever media is picked will NOT be allowed to return, so be careful using something that you cannot loose.
+
+The following files will exist:
+*  openshift-client-linux.tar.gz
+*	 openshift-install-linux.tar.gz
+*  rhcos-openstack.x86_64.qcow2.gz (large)
+*  openshift-${OCP_RELEASE}-release-bundle.tar.gz (very large)
+*  postgres.tar
+*  redis.tar
+*  quay.tar
+
+In addition, bring a RHEL 8 (everthing) ISO if the site doesn't have Satellite or other sources for RHEL.
+
+# Offline Bastion Setup
+
+Assumption: RHV 4.6 already installed, configured
+
+Goal: Install a RHEL host where installation and maintenance will be done from. This host will be used to validate environment and hold configuration settings, management keys etc. The host will also be able to SSH into any OCP node for diagnostics - this access can be blocked by firewalls for any other host. When not in use, this host should be shutdown but NOT removed.
+
+Log into the RHVM cluster as a cluster admin - admin rights to the oVirt cluster meant for OCP is a minimum. Check the following exists:
+
+* Cluster defined with at least 3 hosts - note the cluster ID of this cluster (ie ccc53763-c479-410f-af0b-ec846929b46h). This is the Cluster ID and will be needed in the next section.
+	+ Cluster must have 3 hosts, each at least 16 cores and 128GB of RAM. Recommend 32+ cores per host.
+	+ Ensure a logical network for OCP is defined - ie. "aServerNetwork". This network must be assigned to NICs on each host that are on a 10 Gbps switch. 2 bonded nics is recommended but not required.
+	+ Ensure compatability version is set to 4.6 for the cluster.
+	+ Cluster should have a storage network defined to separate it from the VM traffic
+	+ Note the Network ID of the "aServerNetwork" network for OCP (ie 5efa608a-2e5c-482c-a510-2e8adbef939f) - this is the Network ID needed for the install-config later in this guide.
+
+
+
+
+# OpenShift Installation from Offline Bastion
