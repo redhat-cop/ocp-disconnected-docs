@@ -6,8 +6,10 @@
       "Action": [
         "elasticloadbalancing:DescribeLoadBalancers",
         "route53:ListHostedZones",
+        "route53:ListTagsForResources",
         "route53:ChangeResourceRecordSets",
-        "tag:GetResources"
+        "tag:GetResources",
+        "sts:AssumeRole"
       ],
       "Resource": "*"
     },
