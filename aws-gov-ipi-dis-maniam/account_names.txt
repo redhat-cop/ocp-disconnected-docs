@@ -4,3 +4,4 @@ cloud-credential-operator-s3
 openshift-image-registry
 openshift-ingress
 openshift-machine-api-aws
+openshift-cloud-network-config-controller-aws
